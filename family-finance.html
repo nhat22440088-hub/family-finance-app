@@ -1,0 +1,2009 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản Lý Tài Chính Gia Đình 3D - Supabase Cloud Database</title>
+  
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            gold: {
+              400: '#fbbf24',
+              500: '#f59e0b',
+              600: '#d97706',
+            }
+          },
+          boxShadow: {
+            'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+            'glass-glow': '0 0 25px rgba(59, 130, 246, 0.35)',
+            'card-3d': '0 20px 40px -15px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.15) inset',
+            'btn-3d': '0 6px 0 rgba(0,0,0,0.35), 0 10px 20px rgba(0,0,0,0.4)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Supabase JS Client CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Confetti Celebration CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    /* 3D Glassmorphism Styles */
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: radial-gradient(circle at 20% 20%, #1e1b4b 0%, #0f172a 40%, #020617 100%);
+      color: #f8fafc;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.45);
+    }
+
+    .glass-card-interactive {
+      background: rgba(30, 41, 59, 0.55);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .glass-card-interactive:hover {
+      transform: translateY(-4px) scale(1.01);
+      border-color: rgba(255, 255, 255, 0.28);
+      box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.6), 0 0 20px rgba(99, 102, 241, 0.2);
+    }
+
+    /* 3D Card Simulation */
+    .family-credit-card {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #1e1b4b 100%);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.15) inset;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .family-credit-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 60%);
+      transform: rotate(30deg);
+      pointer-events: none;
+    }
+
+    /* Chip Card */
+    .chip-3d {
+      width: 44px;
+      height: 32px;
+      background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 50%, #d97706 100%);
+      border-radius: 6px;
+      border: 1px solid #78350f;
+      position: relative;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    }
+
+    .chip-3d::after {
+      content: '';
+      position: absolute;
+      inset: 4px;
+      border: 1px solid rgba(120, 53, 15, 0.6);
+      border-radius: 3px;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.35);
+    }
+
+    /* Animated Glow Orbs */
+    .glow-orb-1 {
+      position: fixed;
+      top: -10%;
+      left: -10%;
+      width: 450px;
+      height: 450px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.22) 0%, transparent 70%);
+      filter: blur(60px);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .glow-orb-2 {
+      position: fixed;
+      bottom: -10%;
+      right: -10%;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(236, 72, 153, 0.18) 0%, transparent 70%);
+      filter: blur(70px);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .glow-orb-3 {
+      position: fixed;
+      top: 40%;
+      right: 25%;
+      width: 350px;
+      height: 350px;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, transparent 70%);
+      filter: blur(60px);
+      z-index: -1;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body class="selection:bg-indigo-500 selection:text-white relative">
+  <!-- Glowing Background Orbs -->
+  <div class="glow-orb-1"></div>
+  <div class="glow-orb-2"></div>
+  <div class="glow-orb-3"></div>
+
+  <!-- NAVIGATION BAR -->
+  <nav class="sticky top-0 z-40 w-full glass-panel border-b border-white/10 px-4 sm:px-8 py-3.5 flex items-center justify-between shadow-2xl">
+    <div class="flex items-center space-x-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-400 via-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 transform -rotate-3 hover:rotate-0 transition-transform">
+        <i class="fa-solid fa-vault text-lg"></i>
+      </div>
+      <div>
+        <div class="flex items-center space-x-2">
+          <span class="font-black text-lg sm:text-xl tracking-tight bg-gradient-to-r from-amber-300 via-white to-indigo-200 bg-clip-text text-transparent">GiaĐình Finance</span>
+          <span class="text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">3D Cloud</span>
+        </div>
+        <p class="text-xs text-slate-400 hidden sm:block">Quản Lý Tài Chính & Dòng Tiền Gia Đình</p>
+      </div>
+    </div>
+
+    <!-- Center/Right Actions -->
+    <div class="flex items-center space-x-2 sm:space-x-3">
+      <!-- Database Connection Status Badge -->
+      <button onclick="openSupabaseModal()" id="supabaseStatusBadge" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-300 border border-amber-500/30 hover:bg-amber-500/20 transition cursor-pointer" title="Bấm để cấu hình Supabase Cloud DB">
+        <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+        <span id="supabaseStatusText" class="hidden md:inline">Chế độ Demo / Cục bộ</span>
+        <span class="md:hidden">DB</span>
+        <i class="fa-solid fa-gear text-[10px] ml-1"></i>
+      </button>
+
+      <!-- Member Profile Switch Button -->
+      <button onclick="showMemberLoginModal()" class="flex items-center space-x-2 px-3 py-1.5 rounded-xl glass-card-interactive text-xs font-medium border border-white/20 text-white cursor-pointer hover:border-indigo-400">
+        <span id="navMemberAvatar" class="text-base">👑</span>
+        <div class="text-left hidden sm:block">
+          <div id="navMemberName" class="font-bold leading-tight">Tôi (Admin)</div>
+          <div id="navMemberRole" class="text-[10px] text-amber-400">Quản trị toàn gia đình</div>
+        </div>
+        <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 ml-1"></i>
+      </button>
+
+      <!-- Quick Add Transaction Button -->
+      <button onclick="openAddTransactionModal()" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs sm:text-sm font-bold shadow-lg shadow-indigo-500/30 flex items-center space-x-1.5 transition active:scale-95 cursor-pointer">
+        <i class="fa-solid fa-plus"></i>
+        <span class="hidden sm:inline">Thêm Giao Dịch</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- ROLE BANNER NOTICE -->
+    <div id="roleBanner" class="p-3.5 sm:p-4 rounded-2xl glass-panel border border-indigo-500/30 flex items-center justify-between gap-3 bg-gradient-to-r from-indigo-950/40 via-purple-950/20 to-slate-900/60">
+      <div class="flex items-center space-x-3">
+        <div id="roleBannerIcon" class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-xl text-amber-300">
+          👑
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h2 id="roleBannerTitle" class="font-bold text-sm sm:text-base text-white">Chế độ Quản Trị Viên (Admin - Tôi)</h2>
+            <span id="roleBannerBadge" class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">Toàn Quyền</span>
+          </div>
+          <p id="roleBannerDesc" class="text-xs text-slate-300 mt-0.5">
+            Bạn đang xem tổng thể dòng tiền của 5 thành viên (Tôi, Ba, Mẹ, Chị, Vợ). Bạn có thể chọn xem tất cả hoặc lọc riêng từng người.
+          </p>
+        </div>
+      </div>
+      <button onclick="showMemberLoginModal()" class="shrink-0 text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white font-medium border border-white/15 transition cursor-pointer">
+        <i class="fa-solid fa-arrow-right-arrow-left mr-1"></i> Đổi thành viên
+      </button>
+    </div>
+
+    <!-- TIME FILTER BAR (VIEW BY: DAY, WEEK, MONTH, QUARTER, ALL) -->
+    <div class="glass-panel rounded-2xl p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+      <!-- Filter Mode Selector (Tabs) -->
+      <div class="flex items-center bg-slate-900/80 p-1 rounded-xl border border-white/10 overflow-x-auto">
+        <button onclick="setTimeFilterMode('daily')" id="tab-daily" class="time-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition cursor-pointer whitespace-nowrap">
+          <i class="fa-regular fa-calendar-day mr-1"></i> Ngày (Daily)
+        </button>
+        <button onclick="setTimeFilterMode('weekly')" id="tab-weekly" class="time-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition cursor-pointer whitespace-nowrap">
+          <i class="fa-solid fa-calendar-week mr-1"></i> Tuần (Weekly)
+        </button>
+        <button onclick="setTimeFilterMode('monthly')" id="tab-monthly" class="time-tab active px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white shadow transition cursor-pointer whitespace-nowrap">
+          <i class="fa-regular fa-calendar mr-1"></i> Tháng (Monthly)
+        </button>
+        <button onclick="setTimeFilterMode('quarterly')" id="tab-quarterly" class="time-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition cursor-pointer whitespace-nowrap">
+          <i class="fa-solid fa-chart-pie mr-1"></i> Quý (Quarterly)
+        </button>
+        <button onclick="setTimeFilterMode('all')" id="tab-all" class="time-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition cursor-pointer whitespace-nowrap">
+          <i class="fa-solid fa-infinity mr-1"></i> Tất cả
+        </button>
+      </div>
+
+      <!-- Time Navigation / Period Display -->
+      <div class="flex items-center justify-between md:justify-end space-x-2">
+        <button onclick="shiftTimePeriod(-1)" class="w-8 h-8 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 flex items-center justify-center border border-white/10 transition cursor-pointer">
+          <i class="fa-solid fa-chevron-left text-xs"></i>
+        </button>
+
+        <div id="periodDisplayLabel" class="px-3 py-1.5 rounded-lg bg-slate-800/90 border border-white/10 text-xs font-bold text-indigo-300 text-center min-w-[140px]">
+          Tháng 09 / 2026
+        </div>
+
+        <button onclick="shiftTimePeriod(1)" class="w-8 h-8 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 flex items-center justify-center border border-white/10 transition cursor-pointer">
+          <i class="fa-solid fa-chevron-right text-xs"></i>
+        </button>
+
+        <button onclick="resetToToday()" class="px-2.5 py-1.5 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 text-xs font-semibold border border-indigo-500/30 transition cursor-pointer">
+          Hôm nay
+        </button>
+
+        <!-- Admin Only Member Filter Dropdown -->
+        <div id="adminMemberFilterWrap" class="relative">
+          <select id="adminMemberFilterSelect" onchange="onAdminMemberFilterChange(this.value)" class="bg-slate-800 border border-white/15 text-xs text-white rounded-lg px-2.5 py-1.5 font-medium focus:outline-none focus:border-indigo-400 cursor-pointer">
+            <option value="all">👨‍👩‍👧‍👦 Tất cả thành viên</option>
+            <option value="admin">👑 Tôi (Admin)</option>
+            <option value="ba">👔 Ba</option>
+            <option value="me">🧺 Mẹ</option>
+            <option value="chi">💼 Chị</option>
+            <option value="vo">🌸 Vợ</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3D HERO METRIC CARDS SECTION -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+      
+      <!-- Card 1: Family 3D Virtual ATM Card -->
+      <div class="family-credit-card rounded-2xl p-5 flex flex-col justify-between h-48 md:col-span-2 lg:col-span-1 shadow-card-3d transform hover:-translate-y-1 transition duration-300">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <div class="chip-3d"></div>
+            <i class="fa-solid fa-wifi text-slate-400 text-xs rotate-90 ml-1"></i>
+          </div>
+          <span class="text-xs font-black tracking-widest text-amber-400 uppercase">FAMILY PLATINUM</span>
+        </div>
+
+        <div>
+          <div class="text-[11px] text-slate-400 font-medium">Số dư khả dụng hiện tại</div>
+          <div id="statNetBalance" class="text-2xl sm:text-3xl font-black tracking-tight text-white mt-0.5">
+            0 ₫
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between pt-2 border-t border-white/10 text-xs">
+          <div>
+            <div class="text-[9px] text-slate-400 uppercase font-semibold">Chủ sở hữu</div>
+            <div id="cardHolderName" class="font-bold text-slate-200">TỔNG GIA ĐÌNH</div>
+          </div>
+          <div class="text-right">
+            <div class="text-[9px] text-slate-400 uppercase font-semibold">Bảo mật</div>
+            <div class="font-mono text-slate-300 font-semibold">•••• 8899</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Total Income -->
+      <div class="glass-card-interactive rounded-2xl p-5 flex flex-col justify-between h-48 border-t-2 border-emerald-500/80">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Tổng Thu Nhập</span>
+          <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center border border-emerald-500/30">
+            <i class="fa-solid fa-arrow-down-left text-sm"></i>
+          </div>
+        </div>
+
+        <div>
+          <div id="statTotalIncome" class="text-2xl sm:text-3xl font-black text-emerald-400 tracking-tight">
+            0 ₫
+          </div>
+          <p id="statIncomeSubtitle" class="text-xs text-slate-400 mt-1">Gồm lương, thưởng & các nguồn thu</p>
+        </div>
+
+        <div class="flex items-center justify-between text-xs text-slate-300 pt-2 border-t border-white/5">
+          <span>Số lượt thu:</span>
+          <span id="statIncomeCount" class="font-bold text-white">0</span>
+        </div>
+      </div>
+
+      <!-- Card 3: Total Expense -->
+      <div class="glass-card-interactive rounded-2xl p-5 flex flex-col justify-between h-48 border-t-2 border-rose-500/80">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-rose-400 uppercase tracking-wider">Tổng Chi Tiêu</span>
+          <div class="w-9 h-9 rounded-xl bg-rose-500/20 text-rose-300 flex items-center justify-center border border-rose-500/30">
+            <i class="fa-solid fa-arrow-up-right text-sm"></i>
+          </div>
+        </div>
+
+        <div>
+          <div id="statTotalExpense" class="text-2xl sm:text-3xl font-black text-rose-400 tracking-tight">
+            0 ₫
+          </div>
+          <p id="statExpenseSubtitle" class="text-xs text-slate-400 mt-1">Sinh hoạt, chợ búa, điện nước...</p>
+        </div>
+
+        <div class="flex items-center justify-between text-xs text-slate-300 pt-2 border-t border-white/5">
+          <span>Số lượt chi:</span>
+          <span id="statExpenseCount" class="font-bold text-white">0</span>
+        </div>
+      </div>
+
+      <!-- Card 4: Savings Rate / Net Cashflow -->
+      <div class="glass-card-interactive rounded-2xl p-5 flex flex-col justify-between h-48 border-t-2 border-indigo-500/80">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-indigo-300 uppercase tracking-wider">Tỷ Lệ Tích Lũy</span>
+          <div class="w-9 h-9 rounded-xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center border border-indigo-500/30">
+            <i class="fa-solid fa-piggy-bank text-sm"></i>
+          </div>
+        </div>
+
+        <div>
+          <div id="statSavingsRate" class="text-2xl sm:text-3xl font-black text-indigo-300 tracking-tight">
+            0%
+          </div>
+          <p id="statSavingsMessage" class="text-xs text-slate-400 mt-1">Dòng tiền thặng dư an toàn</p>
+        </div>
+
+        <div class="flex items-center justify-between text-xs text-slate-300 pt-2 border-t border-white/5">
+          <span>Dòng tiền ròng:</span>
+          <span id="statNetFlowLabel" class="font-bold text-white">0 ₫</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ADMIN EXCLUSIVE: 5 FAMILY MEMBERS QUICK OVERVIEW -->
+    <div id="adminFamilyBreakdownSection" class="glass-panel rounded-2xl p-5">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center space-x-2">
+          <i class="fa-solid fa-users text-amber-400"></i>
+          <h3 class="font-bold text-sm sm:text-base text-white">Số Dư & Chi Tiêu Riêng Từng Thành Viên</h3>
+        </div>
+        <span class="text-xs text-amber-400/80 font-medium">Chỉ Admin có quyền xem</span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5" id="memberCardsContainer">
+        <!-- Dynamic member summary cards injected here -->
+      </div>
+    </div>
+
+    <!-- CHARTS SECTION (3D GLASSMORPHISM VISUALIZATION) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      
+      <!-- Chart 1: Cashflow (Income vs Expense over time) -->
+      <div class="lg:col-span-7 glass-panel rounded-2xl p-5 flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h3 class="font-bold text-sm sm:text-base text-white flex items-center space-x-2">
+              <i class="fa-solid fa-chart-simple text-indigo-400"></i>
+              <span>Dòng Tiền Thu & Chi</span>
+            </h3>
+            <p class="text-xs text-slate-400">So sánh thu nhập và chi tiêu theo mốc thời gian</p>
+          </div>
+          <span class="text-xs px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 font-medium">Biểu đồ động</span>
+        </div>
+
+        <div class="relative h-64 sm:h-72 w-full">
+          <canvas id="cashflowChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Chart 2: Category Breakdown Donut Chart -->
+      <div class="lg:col-span-5 glass-panel rounded-2xl p-5 flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h3 class="font-bold text-sm sm:text-base text-white flex items-center space-x-2">
+              <i class="fa-solid fa-chart-pie text-purple-400"></i>
+              <span>Phân Bổ Chi Tiêu Theo Danh Mục</span>
+            </h3>
+            <p class="text-xs text-slate-400">Danh mục chiếm tỷ trọng lớn nhất</p>
+          </div>
+          <button onclick="openCategoryManagerModal()" class="text-xs text-indigo-300 hover:text-white underline cursor-pointer">
+            Quản lý
+          </button>
+        </div>
+
+        <div class="relative h-64 sm:h-72 w-full flex items-center justify-center">
+          <canvas id="categoryChart"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ADMIN EXCLUSIVE: MEMBERS COMPARISON CHART (ONLY WHEN ADMIN) -->
+    <div id="adminMembersComparisonWrap" class="glass-panel rounded-2xl p-5">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="font-bold text-sm sm:text-base text-white flex items-center space-x-2">
+            <i class="fa-solid fa-scale-balanced text-amber-400"></i>
+            <span>So Sánh Chi Tiêu Giữa Các Thành Viên Gia Đình</span>
+          </h3>
+          <p class="text-xs text-slate-400">Biểu đồ đối chiếu mức tiêu dùng thực tế của Ba, Mẹ, Chị, Vợ và Tôi</p>
+        </div>
+        <span class="text-xs px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20 font-semibold">Quyền Quản Trị</span>
+      </div>
+
+      <div class="relative h-56 sm:h-64 w-full">
+        <canvas id="memberComparisonChart"></canvas>
+      </div>
+    </div>
+
+    <!-- TRANSACTIONS LIST & ACTION BAR -->
+    <div class="glass-panel rounded-2xl p-5 space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/10">
+        <div>
+          <h3 class="font-bold text-base sm:text-lg text-white flex items-center space-x-2">
+            <i class="fa-solid fa-clock-rotate-left text-indigo-400"></i>
+            <span>Lịch Sử Giao Dịch Chi Tiết</span>
+          </h3>
+          <p class="text-xs text-slate-400">Hỗ trợ tìm kiếm, phân loại và nhận danh mục tùy chỉnh</p>
+        </div>
+
+        <div class="flex items-center space-x-2">
+          <!-- Search input -->
+          <div class="relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+            <input type="text" id="txSearchInput" oninput="renderTransactionList()" placeholder="Tìm theo ghi chú, danh mục..." class="bg-slate-900/90 border border-white/15 text-xs text-white rounded-xl pl-8 pr-3 py-2 w-48 sm:w-64 focus:outline-none focus:border-indigo-400 transition placeholder:text-slate-500">
+          </div>
+
+          <!-- Filter type: All, Expense, Income -->
+          <select id="txTypeFilter" onchange="renderTransactionList()" class="bg-slate-900/90 border border-white/15 text-xs text-white rounded-xl px-3 py-2 focus:outline-none focus:border-indigo-400 cursor-pointer">
+            <option value="all">Tất cả loại</option>
+            <option value="expense">🔴 Chỉ Chi Tiêu</option>
+            <option value="income">🟢 Chỉ Thu Nhập</option>
+          </select>
+
+          <!-- Add Button -->
+          <button onclick="openAddTransactionModal()" class="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer shadow-lg shadow-indigo-600/30">
+            <i class="fa-solid fa-plus"></i>
+            <span class="hidden sm:inline">Ghi Chép</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Transaction Items Table / Cards Container -->
+      <div id="transactionsListContainer" class="space-y-2.5">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ================= MODALS ================= -->
+
+  <!-- 1. MEMBER SELECTION / LOGIN MODAL -->
+  <div id="memberLoginModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="glass-panel w-full max-w-xl rounded-3xl p-6 sm:p-8 border border-white/20 shadow-2xl relative animate-in fade-in zoom-in duration-200">
+      <button onclick="closeMemberLoginModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white text-lg w-8 h-8 rounded-full bg-white/5 flex items-center justify-center transition cursor-pointer">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="text-center mb-6">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-600 mx-auto flex items-center justify-center text-2xl text-white shadow-lg shadow-indigo-500/40 mb-3">
+          👨‍👩‍👧‍👦
+        </div>
+        <h3 class="text-xl sm:text-2xl font-black text-white">Chọn Tài Khoản Thành Viên</h3>
+        <p class="text-xs sm:text-sm text-slate-300 mt-1 max-w-md mx-auto">
+          Mỗi thành viên có quyền hạn bảo mật riêng. "Tôi (Admin)" quản trị dòng tiền cả nhà, các thành viên chỉ xem ví cá nhân.
+        </p>
+      </div>
+
+      <!-- 5 Members Selection Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        
+        <!-- 1. Admin -->
+        <div onclick="selectActiveMember('admin')" class="sm:col-span-2 glass-card-interactive p-4 rounded-2xl border-2 border-amber-500/40 hover:border-amber-400 flex items-center justify-between cursor-pointer group bg-gradient-to-r from-amber-500/15 via-slate-900/80 to-slate-900/90">
+          <div class="flex items-center space-x-3.5">
+            <div class="w-12 h-12 rounded-xl bg-amber-500/20 border border-amber-500/40 text-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+              👑
+            </div>
+            <div>
+              <div class="flex items-center space-x-2">
+                <span class="font-extrabold text-base text-white">Tôi (Admin)</span>
+                <span class="text-[10px] uppercase font-black px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">Toàn quyền</span>
+              </div>
+              <p class="text-xs text-slate-300 mt-0.5">Xem toàn bộ ví & dòng tiền của Ba, Mẹ, Chị, Vợ và Tôi</p>
+            </div>
+          </div>
+          <i class="fa-solid fa-chevron-right text-slate-400 group-hover:text-amber-400 group-hover:translate-x-1 transition-transform"></i>
+        </div>
+
+        <!-- 2. Ba -->
+        <div onclick="selectActiveMember('ba')" class="glass-card-interactive p-3.5 rounded-2xl border border-white/10 hover:border-blue-400 flex items-center justify-between cursor-pointer group">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-500/30 text-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+              👔
+            </div>
+            <div>
+              <div class="font-bold text-sm text-white">Ba</div>
+              <div class="text-[11px] text-slate-400">Ví cá nhân bảo mật</div>
+            </div>
+          </div>
+          <span class="text-xs text-blue-400 font-semibold group-hover:underline">Vào ví</span>
+        </div>
+
+        <!-- 3. Mẹ -->
+        <div onclick="selectActiveMember('me')" class="glass-card-interactive p-3.5 rounded-2xl border border-white/10 hover:border-rose-400 flex items-center justify-between cursor-pointer group">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-rose-500/20 border border-rose-500/30 text-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+              🧺
+            </div>
+            <div>
+              <div class="font-bold text-sm text-white">Mẹ</div>
+              <div class="text-[11px] text-slate-400">Ví cá nhân bảo mật</div>
+            </div>
+          </div>
+          <span class="text-xs text-rose-400 font-semibold group-hover:underline">Vào ví</span>
+        </div>
+
+        <!-- 4. Chị -->
+        <div onclick="selectActiveMember('chi')" class="glass-card-interactive p-3.5 rounded-2xl border border-white/10 hover:border-purple-400 flex items-center justify-between cursor-pointer group">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/30 text-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+              💼
+            </div>
+            <div>
+              <div class="font-bold text-sm text-white">Chị</div>
+              <div class="text-[11px] text-slate-400">Ví cá nhân bảo mật</div>
+            </div>
+          </div>
+          <span class="text-xs text-purple-400 font-semibold group-hover:underline">Vào ví</span>
+        </div>
+
+        <!-- 5. Vợ -->
+        <div onclick="selectActiveMember('vo')" class="glass-card-interactive p-3.5 rounded-2xl border border-white/10 hover:border-emerald-400 flex items-center justify-between cursor-pointer group">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+              🌸
+            </div>
+            <div>
+              <div class="font-bold text-sm text-white">Vợ</div>
+              <div class="text-[11px] text-slate-400">Ví cá nhân bảo mật</div>
+            </div>
+          </div>
+          <span class="text-xs text-emerald-400 font-semibold group-hover:underline">Vào ví</span>
+        </div>
+
+      </div>
+
+      <div class="mt-6 text-center text-xs text-slate-400">
+        Bạn có thể chuyển đổi tài khoản bất cứ lúc nào qua nút trên thanh điều hướng.
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. ADD TRANSACTION MODAL (WITH DYNAMIC CUSTOM CATEGORY) -->
+  <div id="addTransactionModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="glass-panel w-full max-w-lg rounded-3xl p-6 sm:p-8 border border-white/20 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeAddTransactionModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white text-lg w-8 h-8 rounded-full bg-white/5 flex items-center justify-center transition cursor-pointer">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="mb-5">
+        <h3 class="text-xl font-black text-white flex items-center space-x-2">
+          <span class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-sm">
+            <i class="fa-solid fa-receipt"></i>
+          </span>
+          <span>Thêm Giao Dịch Mới</span>
+        </h3>
+        <p class="text-xs text-slate-400 mt-1">Ghi lại khoản chi tiêu hoặc thu nhập trong gia đình</p>
+      </div>
+
+      <form id="transactionForm" onsubmit="handleSaveTransaction(event)" class="space-y-4">
+        
+        <!-- Transaction Type Switch (Chi tiêu vs Thu nhập) -->
+        <div class="grid grid-cols-2 gap-2 bg-slate-900/90 p-1 rounded-xl border border-white/10">
+          <button type="button" onclick="setTxFormType('expense')" id="btnFormExpense" class="py-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-2 bg-rose-600 text-white shadow">
+            <i class="fa-solid fa-circle-minus"></i>
+            <span>Khoản Chi Tiêu</span>
+          </button>
+          <button type="button" onclick="setTxFormType('income')" id="btnFormIncome" class="py-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-2 text-slate-400 hover:text-white">
+            <i class="fa-solid fa-circle-plus"></i>
+            <span>Khoản Thu Nhập</span>
+          </button>
+        </div>
+
+        <!-- Target Member (Only visible or editable if Admin) -->
+        <div id="formMemberSelectWrap">
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Ghi nhận cho thành viên:</label>
+          <select id="formMemberSelect" class="w-full bg-slate-900 border border-white/15 text-xs text-white rounded-xl px-3 py-2.5 focus:outline-none focus:border-indigo-400 cursor-pointer">
+            <option value="admin">👑 Tôi (Admin)</option>
+            <option value="ba">👔 Ba</option>
+            <option value="me">🧺 Mẹ</option>
+            <option value="chi">💼 Chị</option>
+            <option value="vo">🌸 Vợ</option>
+          </select>
+        </div>
+
+        <!-- Amount (VND) with Quick Presets -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Số tiền (VNĐ):</label>
+          <div class="relative">
+            <input type="number" id="formAmount" required min="1000" step="1000" placeholder="VD: 150000" class="w-full bg-slate-900 border border-white/15 text-lg font-bold text-white rounded-xl pl-4 pr-12 py-2.5 focus:outline-none focus:border-indigo-400 placeholder:text-slate-600">
+            <span class="absolute right-4 top-3 text-xs font-bold text-slate-400">VNĐ</span>
+          </div>
+          <!-- Quick Amount Buttons -->
+          <div class="flex items-center space-x-1.5 mt-2 overflow-x-auto pb-1">
+            <button type="button" onclick="setFormAmountPreset(50000)" class="px-2.5 py-1 text-[11px] rounded-lg bg-white/5 hover:bg-white/15 text-slate-300 border border-white/10 whitespace-nowrap cursor-pointer">50k</button>
+            <button type="button" onclick="setFormAmountPreset(100000)" class="px-2.5 py-1 text-[11px] rounded-lg bg-white/5 hover:bg-white/15 text-slate-300 border border-white/10 whitespace-nowrap cursor-pointer">100k</button>
+            <button type="button" onclick="setFormAmountPreset(200000)" class="px-2.5 py-1 text-[11px] rounded-lg bg-white/5 hover:bg-white/15 text-slate-300 border border-white/10 whitespace-nowrap cursor-pointer">200k</button>
+            <button type="button" onclick="setFormAmountPreset(500000)" class="px-2.5 py-1 text-[11px] rounded-lg bg-white/5 hover:bg-white/15 text-slate-300 border border-white/10 whitespace-nowrap cursor-pointer">500k</button>
+            <button type="button" onclick="setFormAmountPreset(1000000)" class="px-2.5 py-1 text-[11px] rounded-lg bg-white/5 hover:bg-white/15 text-slate-300 border border-white/10 whitespace-nowrap cursor-pointer">1 Triệu</button>
+            <button type="button" onclick="setFormAmountPreset(5000000)" class="px-2.5 py-1 text-[11px] rounded-lg bg-white/5 hover:bg-white/15 text-slate-300 border border-white/10 whitespace-nowrap cursor-pointer">5 Triệu</button>
+          </div>
+        </div>
+
+        <!-- CATEGORY SELECTION & DYNAMIC CUSTOM CATEGORY (CORE REQUIREMENT) -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="text-xs font-semibold text-slate-300">Danh mục giao dịch:</label>
+            <button type="button" onclick="toggleCustomCategoryInput()" id="btnToggleCustomCat" class="text-xs text-amber-400 hover:text-amber-300 font-medium cursor-pointer">
+              <i class="fa-solid fa-plus-circle mr-1"></i>+ Tự gõ danh mục mới
+            </button>
+          </div>
+
+          <!-- Existing Category Chips Selector -->
+          <div id="categoryChipsContainer" class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-40 overflow-y-auto p-1 bg-slate-950/40 rounded-xl border border-white/10">
+            <!-- Dynamically populated chips -->
+          </div>
+
+          <!-- Input for Custom Category (Appears when toggled or clicked) -->
+          <div id="customCategoryInputWrap" class="mt-2.5 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 hidden">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-xs font-bold text-amber-300">✨ Nhập Danh Mục Mới (Tự lưu vào DB):</span>
+              <button type="button" onclick="toggleCustomCategoryInput()" class="text-[11px] text-slate-400 hover:text-white">Đóng</button>
+            </div>
+            <div class="flex items-center space-x-2">
+              <select id="customCatIcon" class="bg-slate-900 border border-white/20 text-base rounded-xl px-2.5 py-2 cursor-pointer">
+                <option value="✨">✨</option>
+                <option value="🥬">🥬</option>
+                <option value="⚡">⚡</option>
+                <option value="💊">💊</option>
+                <option value="📚">📚</option>
+                <option value="🛵">🛵</option>
+                <option value="🛍️">🛍️</option>
+                <option value="🍲">🍲</option>
+                <option value="✈️">✈️</option>
+                <option value="☕">☕</option>
+                <option value="👶">👶</option>
+                <option value="🐾">🐾</option>
+                <option value="🚗">🚗</option>
+                <option value="💎">💎</option>
+                <option value="🎉">🎉</option>
+              </select>
+              <input type="text" id="customCatName" placeholder="VD: Khóa học bơi, Bảo dưỡng máy lạnh..." class="flex-1 bg-slate-900 border border-white/20 text-xs text-white rounded-xl px-3 py-2 focus:outline-none focus:border-amber-400 placeholder:text-slate-500">
+            </div>
+            <p class="text-[10px] text-slate-400 mt-1.5">
+              * Danh mục bạn nhập sẽ tự động được lưu vào Supabase và hiển thị trong danh sách cho các lần nhập tiếp theo.
+            </p>
+          </div>
+        </div>
+
+        <!-- Date & Note -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Ngày thực hiện:</label>
+            <input type="date" id="formDate" required class="w-full bg-slate-900 border border-white/15 text-xs text-white rounded-xl px-3 py-2.5 focus:outline-none focus:border-indigo-400">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Ghi chú chi tiết:</label>
+            <input type="text" id="formNote" placeholder="VD: Mua ở WinMart..." class="w-full bg-slate-900 border border-white/15 text-xs text-white rounded-xl px-3 py-2.5 focus:outline-none focus:border-indigo-400 placeholder:text-slate-600">
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="pt-3">
+          <button type="submit" id="btnSubmitTx" class="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-600 to-indigo-600 hover:opacity-95 text-white font-bold text-sm shadow-btn-3d active:translate-y-1 transition duration-150 flex items-center justify-center space-x-2 cursor-pointer">
+            <i class="fa-solid fa-floppy-disk"></i>
+            <span>Lưu Giao Dịch Vào Đám Mây</span>
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. SUPABASE CONFIGURATION & SQL INSTRUCTIONS MODAL -->
+  <div id="supabaseModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="glass-panel w-full max-w-2xl rounded-3xl p-6 sm:p-8 border border-white/20 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeSupabaseModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white text-lg w-8 h-8 rounded-full bg-white/5 flex items-center justify-center transition cursor-pointer">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="flex items-center space-x-3 mb-4">
+        <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center text-2xl">
+          <i class="fa-solid fa-database"></i>
+        </div>
+        <div>
+          <h3 class="text-xl font-black text-white">Cấu Hình Kết Nối Supabase Cloud</h3>
+          <p class="text-xs text-slate-300">Đồng bộ cơ sở dữ liệu thời gian thực và lưu trữ danh mục động</p>
+        </div>
+      </div>
+
+      <!-- Steps Guide -->
+      <div class="space-y-4 text-xs text-slate-300">
+        
+        <div class="p-3.5 rounded-xl bg-slate-900/90 border border-white/10 space-y-2">
+          <div class="font-bold text-sm text-amber-300 flex items-center space-x-1.5">
+            <span class="w-5 h-5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center text-xs font-black">1</span>
+            <span>Tạo Project trên Supabase</span>
+          </div>
+          <p>Truy cập <a href="https://supabase.com" target="_blank" class="text-indigo-400 underline font-semibold">supabase.com</a>, đăng ký miễn phí và tạo một Project mới (chọn khu vực Singapore gần Việt Nam nhất).</p>
+        </div>
+
+        <div class="p-3.5 rounded-xl bg-slate-900/90 border border-white/10 space-y-2">
+          <div class="font-bold text-sm text-amber-300 flex items-center space-x-1.5">
+            <span class="w-5 h-5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center text-xs font-black">2</span>
+            <span>Chạy Mã SQL Tạo Bảng (Chỉ 1 Click)</span>
+          </div>
+          <p>Vào mục <strong>SQL Editor</strong> -> <strong>New query</strong>, dán đoạn mã bên dưới và bấm <strong>Run</strong>:</p>
+          
+          <div class="relative">
+            <pre class="bg-black/80 text-[11px] font-mono text-emerald-300 p-3 rounded-lg overflow-x-auto max-h-40 border border-emerald-500/30 select-all" id="sqlSchemaCode">CREATE TABLE IF NOT EXISTS public.transactions (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    member TEXT NOT NULL,
+    type TEXT NOT NULL,
+    amount NUMERIC NOT NULL,
+    category TEXT NOT NULL,
+    note TEXT DEFAULT '',
+    date TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.categories (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    type TEXT NOT NULL,
+    icon TEXT DEFAULT '📌',
+    is_custom BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public all" ON public.transactions FOR ALL USING (true) WITH CHECK (true);
+
+ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public all" ON public.categories FOR ALL USING (true) WITH CHECK (true);</pre>
+            <button onclick="copySqlSchema()" class="absolute top-2 right-2 px-2.5 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-[11px] font-bold text-white shadow cursor-pointer">
+              <i class="fa-regular fa-copy mr-1"></i>Sao Chép SQL
+            </button>
+          </div>
+        </div>
+
+        <div class="p-3.5 rounded-xl bg-slate-900/90 border border-white/10 space-y-3">
+          <div class="font-bold text-sm text-amber-300 flex items-center space-x-1.5">
+            <span class="w-5 h-5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center text-xs font-black">3</span>
+            <span>Dán Thông Tin API Supabase Của Bạn:</span>
+          </div>
+
+          <div class="space-y-2">
+            <div>
+              <label class="block text-slate-400 mb-1">Project URL (Settings -> API -> Project URL):</label>
+              <input type="text" id="inputSupabaseUrl" placeholder="https://your-project.supabase.co" class="w-full bg-black/60 border border-white/20 text-white rounded-lg px-3 py-2 font-mono text-xs focus:outline-none focus:border-indigo-400">
+            </div>
+
+            <div>
+              <label class="block text-slate-400 mb-1">Anon Public Key (Settings -> API -> anon public):</label>
+              <input type="password" id="inputSupabaseKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." class="w-full bg-black/60 border border-white/20 text-white rounded-lg px-3 py-2 font-mono text-xs focus:outline-none focus:border-indigo-400">
+            </div>
+          </div>
+
+          <div id="supabaseTestResult" class="p-2.5 rounded-lg text-xs hidden"></div>
+
+          <div class="flex items-center space-x-2 pt-2">
+            <button onclick="testAndSaveSupabase()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:opacity-95 text-white font-bold transition shadow-lg shadow-emerald-600/30 cursor-pointer">
+              <i class="fa-solid fa-plug mr-1.5"></i>Kiểm Tra & Lưu Cấu Hình
+            </button>
+            <button onclick="clearSupabaseConfig()" class="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300 font-semibold transition cursor-pointer">
+              Đặt lại Demo
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. CATEGORY MANAGER MODAL -->
+  <div id="categoryManagerModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="glass-panel w-full max-w-lg rounded-3xl p-6 border border-white/20 shadow-2xl relative max-h-[85vh] overflow-y-auto">
+      <button onclick="closeCategoryManagerModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white text-lg w-8 h-8 rounded-full bg-white/5 flex items-center justify-center transition cursor-pointer">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <h3 class="text-lg font-black text-white flex items-center space-x-2 mb-2">
+        <i class="fa-solid fa-tags text-purple-400"></i>
+        <span>Quản Lý Danh Mục Giao Dịch</span>
+      </h3>
+      <p class="text-xs text-slate-400 mb-4">Các danh mục mặc định và danh mục tùy biến do bạn tự thêm</p>
+
+      <div class="space-y-4">
+        <!-- Quick Add Category Form -->
+        <div class="p-3.5 rounded-xl bg-slate-900/90 border border-white/10 space-y-2">
+          <span class="text-xs font-bold text-indigo-300">Thêm danh mục mới ngay:</span>
+          <div class="flex items-center space-x-2">
+            <select id="quickCatType" class="bg-slate-800 border border-white/15 text-xs text-white rounded-lg px-2 py-2">
+              <option value="expense">Chi tiêu</option>
+              <option value="income">Thu nhập</option>
+            </select>
+            <input type="text" id="quickCatIcon" value="✨" class="w-12 text-center bg-slate-800 border border-white/15 text-sm rounded-lg py-1.5">
+            <input type="text" id="quickCatName" placeholder="Tên danh mục..." class="flex-1 bg-slate-800 border border-white/15 text-xs text-white rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-400">
+            <button onclick="handleQuickAddCategory()" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white cursor-pointer">
+              Lưu
+            </button>
+          </div>
+        </div>
+
+        <!-- Categories List -->
+        <div>
+          <span class="text-xs font-bold text-slate-300 block mb-2">Danh sách danh mục hiện hành:</span>
+          <div id="fullCategoriesList" class="space-y-1.5 max-h-64 overflow-y-auto pr-1">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC & SUPABASE INTEGRATION -->
+  <script>
+    // --- 1. CONSTANTS & INITIAL DATA ---
+    const MEMBERS = {
+      admin: { id: 'admin', name: 'Tôi (Admin)', role: 'admin', title: 'Quản trị toàn gia đình', avatar: '👑', color: 'amber' },
+      ba:    { id: 'ba',    name: 'Ba',         role: 'member', title: 'Ví cá nhân', avatar: '👔', color: 'blue' },
+      me:    { id: 'me',    name: 'Mẹ',         role: 'member', title: 'Ví cá nhân', avatar: '🧺', color: 'rose' },
+      chi:   { id: 'chi',   name: 'Chị',        role: 'member', title: 'Ví cá nhân', avatar: '💼', color: 'purple' },
+      vo:    { id: 'vo',    name: 'Vợ',         role: 'member', title: 'Ví cá nhân', avatar: '🌸', color: 'emerald' },
+    };
+
+    const DEFAULT_CATEGORIES = [
+      { id: 'cat-1', name: 'Đi chợ & Thực phẩm', type: 'expense', icon: '🥬', isCustom: false },
+      { id: 'cat-2', name: 'Điện nước & Internet', type: 'expense', icon: '⚡', isCustom: false },
+      { id: 'cat-3', name: 'Y tế & Sức khỏe', type: 'expense', icon: '💊', isCustom: false },
+      { id: 'cat-4', name: 'Giáo dục & Học phí', type: 'expense', icon: '📚', isCustom: false },
+      { id: 'cat-5', name: 'Di chuyển & Xăng xe', type: 'expense', icon: '🛵', isCustom: false },
+      { id: 'cat-6', name: 'Mua sắm gia đình', type: 'expense', icon: '🛍️', isCustom: false },
+      { id: 'cat-7', name: 'Ăn uống ngoài', type: 'expense', icon: '🍲', isCustom: false },
+      { id: 'cat-8', name: 'Chi tiêu khác', type: 'expense', icon: '📦', isCustom: false },
+      { id: 'cat-9', name: 'Lương & Phụ cấp', type: 'income', icon: '💰', isCustom: false },
+      { id: 'cat-10', name: 'Thưởng & Hoa hồng', type: 'income', icon: '🎁', isCustom: false },
+      { id: 'cat-11', name: 'Kinh doanh thêm', type: 'income', icon: '📈', isCustom: false },
+      { id: 'cat-12', name: 'Đầu tư & Cổ tức', type: 'income', icon: '💎', isCustom: false },
+      { id: 'cat-13', name: 'Tiền biếu / Tặng', type: 'income', icon: '🧧', isCustom: false },
+      { id: 'cat-14', name: 'Thu nhập khác', type: 'income', icon: '💵', isCustom: false },
+    ];
+
+    const SEED_TRANSACTIONS = [
+      { id: 'tx-1', member: 'admin', type: 'income', amount: 32000000, category: 'Lương & Phụ cấp', note: 'Lương tháng 9 chuyển vào Techcombank', date: '2026-09-05' },
+      { id: 'tx-2', member: 'admin', type: 'expense', amount: 2450000, category: 'Điện nước & Internet', note: 'Hóa đơn tiền điện EVN + Internet Viettel', date: '2026-09-07' },
+      { id: 'tx-3', member: 'me', type: 'expense', amount: 6800000, category: 'Đi chợ & Thực phẩm', note: 'Tiền chợ 2 tuần & mua đồ tẩm bổ cả nhà', date: '2026-09-10' },
+      { id: 'tx-4', member: 'ba', type: 'income', amount: 15000000, category: 'Lương & Phụ cấp', note: 'Lương hưu & thu nhập tư vấn ngoài', date: '2026-09-01' },
+      { id: 'tx-5', member: 'ba', type: 'expense', amount: 1200000, category: 'Y tế & Sức khỏe', note: 'Khám định kỳ & mua thuốc bổ huyết áp', date: '2026-09-12' },
+      { id: 'tx-6', member: 'vo', type: 'income', amount: 22000000, category: 'Lương & Phụ cấp', note: 'Lương công ty', date: '2026-09-05' },
+      { id: 'tx-7', member: 'vo', type: 'expense', amount: 3500000, category: 'Mua sắm gia đình', note: 'Mua sữa tã em bé và đồ dùng phòng khách', date: '2026-09-14' },
+      { id: 'tx-8', member: 'chi', type: 'income', amount: 18000000, category: 'Lương & Phụ cấp', note: 'Lương nhân viên truyền thông', date: '2026-09-05' },
+      { id: 'tx-9', member: 'chi', type: 'expense', amount: 2100000, category: 'Giáo dục & Học phí', note: 'Đăng ký khóa học tiếng Nhật nâng cao', date: '2026-09-16' },
+      { id: 'tx-10', member: 'admin', type: 'expense', amount: 850000, category: 'Ăn uống ngoài', note: 'Cả nhà đi ăn lẩu cuối tuần vui vẻ', date: '2026-09-18' },
+    ];
+
+    // --- 2. APPLICATION STATE ---
+    let activeMemberId = 'admin'; // 'admin', 'ba', 'me', 'chi', 'vo'
+    let adminFilterTarget = 'all'; // 'all', or specific member id
+    let timeFilterMode = 'monthly'; // 'daily', 'weekly', 'monthly', 'quarterly', 'all'
+    let currentAnchorDate = new Date('2026-09-18'); // Reference anchor date
+    let transactions = [];
+    let categories = [];
+    let supabaseClient = null;
+    let currentFormType = 'expense';
+    let selectedFormCategory = '';
+
+    // Chart instances
+    let cashflowChartInstance = null;
+    let categoryChartInstance = null;
+    let memberComparisonChartInstance = null;
+
+    // --- 3. HELPER FUNCTIONS ---
+    function formatVND(amount) {
+      return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(amount);
+    }
+
+    function formatDateDisplay(dateStr) {
+      if (!dateStr) return '';
+      const [y, m, d] = dateStr.split('-');
+      return `${d}/${m}/${y}`;
+    }
+
+    // --- 4. INITIALIZATION ---
+    window.addEventListener('DOMContentLoaded', async () => {
+      // Set today's date in form
+      const todayISO = currentAnchorDate.toISOString().split('T')[0];
+      document.getElementById('formDate').value = todayISO;
+
+      // Load active member from storage if any
+      const savedMember = localStorage.getItem('family_active_member');
+      if (savedMember && MEMBERS[savedMember]) {
+        activeMemberId = savedMember;
+      }
+
+      // Initialize Supabase if configured
+      initSupabase();
+
+      // Load Categories & Transactions
+      await loadCategories();
+      await loadTransactions();
+
+      // Update UI
+      updateMemberUI();
+      refreshDashboard();
+    });
+
+    // --- 5. SUPABASE CONNECTION HANDLERS ---
+    const DEFAULT_SUPABASE_URL = 'https://kvfvhwkcbhcifcdrlucv.supabase.co';
+    const DEFAULT_SUPABASE_KEY = 'sb_publishable_qKrP1K9T5CY_pcTap-C9Mg_KmAqlhb-';
+
+    function initSupabase() {
+      let url = DEFAULT_SUPABASE_URL;
+      let key = DEFAULT_SUPABASE_KEY;
+
+      const savedCfg = localStorage.getItem('family_supabase_config');
+      if (savedCfg) {
+        try {
+          const cfg = JSON.parse(savedCfg);
+          if (cfg.url && cfg.key) {
+            url = cfg.url;
+            key = cfg.key;
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      if (url && key && window.supabase) {
+        try {
+          supabaseClient = window.supabase.createClient(url, key);
+          setSupabaseBadge(true, 'Supabase Đã Kết Nối');
+          return;
+        } catch (e) {
+          console.error('Supabase init error:', e);
+        }
+      }
+      setSupabaseBadge(false, 'Chế độ Demo / Cục bộ');
+    }
+
+    function setSupabaseBadge(connected, text) {
+      const badge = document.getElementById('supabaseStatusBadge');
+      const label = document.getElementById('supabaseStatusText');
+      if (connected) {
+        badge.className = 'flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/25 transition cursor-pointer';
+        badge.querySelector('span').className = 'w-2 h-2 rounded-full bg-emerald-400';
+      } else {
+        badge.className = 'flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/40 hover:bg-amber-500/25 transition cursor-pointer';
+        badge.querySelector('span').className = 'w-2 h-2 rounded-full bg-amber-400 animate-pulse';
+      }
+      label.innerText = text;
+    }
+
+    async function testAndSaveSupabase() {
+      const url = document.getElementById('inputSupabaseUrl').value.trim();
+      const key = document.getElementById('inputSupabaseKey').value.trim();
+      const resultBox = document.getElementById('supabaseTestResult');
+
+      if (!url || !key) {
+        resultBox.className = 'p-2.5 rounded-lg text-xs bg-rose-500/20 text-rose-300 border border-rose-500/30 block';
+        resultBox.innerText = 'Vui lòng nhập đầy đủ Supabase URL và Anon Public Key.';
+        return;
+      }
+
+      resultBox.className = 'p-2.5 rounded-lg text-xs bg-blue-500/20 text-blue-300 border border-blue-500/30 block';
+      resultBox.innerText = 'Đang kiểm tra kết nối với Supabase...';
+
+      try {
+        const testClient = window.supabase.createClient(url, key);
+        const { data, error } = await testClient.from('transactions').select('id').limit(1);
+
+        if (error && error.code !== '42P01') {
+          throw error;
+        }
+
+        localStorage.setItem('family_supabase_config', JSON.stringify({ url, key }));
+        supabaseClient = testClient;
+        setSupabaseBadge(true, 'Supabase Đã Kết Nối');
+
+        resultBox.className = 'p-2.5 rounded-lg text-xs bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 block';
+        resultBox.innerText = '🎉 Kết nối Supabase thành công! Dữ liệu sẽ được đồng bộ lên đám mây ngay lập tức.';
+
+        // Re-load data from Supabase
+        await loadTransactions();
+        await loadCategories();
+        refreshDashboard();
+
+        setTimeout(() => {
+          closeSupabaseModal();
+        }, 1500);
+
+      } catch (err) {
+        resultBox.className = 'p-2.5 rounded-lg text-xs bg-rose-500/20 text-rose-300 border border-rose-500/30 block';
+        resultBox.innerText = '❌ Không thể kết nối: ' + (err.message || 'Kiểm tra lại URL / Key');
+      }
+    }
+
+    function clearSupabaseConfig() {
+      localStorage.removeItem('family_supabase_config');
+      supabaseClient = null;
+      setSupabaseBadge(false, 'Chế độ Demo / Cục bộ');
+      document.getElementById('inputSupabaseUrl').value = '';
+      document.getElementById('inputSupabaseKey').value = '';
+      const resultBox = document.getElementById('supabaseTestResult');
+      resultBox.className = 'p-2.5 rounded-lg text-xs bg-amber-500/20 text-amber-300 border border-amber-500/30 block';
+      resultBox.innerText = 'Đã chuyển về chế độ Demo & Bộ nhớ cục bộ LocalStorage.';
+      loadTransactions();
+      refreshDashboard();
+    }
+
+    function copySqlSchema() {
+      const code = document.getElementById('sqlSchemaCode').innerText;
+      navigator.clipboard.writeText(code).then(() => {
+        alert('Đã sao chép mã SQL vào clipboard! Hãy dán vào SQL Editor trên Supabase.');
+      });
+    }
+
+    // --- 6. CATEGORIES & TRANSACTIONS MANAGEMENT ---
+    async function loadCategories() {
+      let list = [...DEFAULT_CATEGORIES];
+
+      if (supabaseClient) {
+        try {
+          const { data, error } = await supabaseClient.from('categories').select('*');
+          if (!error && data) {
+            data.forEach(c => {
+              if (!list.some(item => item.name.toLowerCase() === c.name.toLowerCase())) {
+                list.push({ id: c.id, name: c.name, type: c.type, icon: c.icon || '✨', isCustom: true });
+              }
+            });
+          }
+        } catch (e) {
+          console.warn('Supabase categories error:', e);
+        }
+      }
+
+      // Local storage custom categories
+      const localCustom = localStorage.getItem('family_custom_categories');
+      if (localCustom) {
+        try {
+          const parsed = JSON.parse(localCustom);
+          parsed.forEach(c => {
+            if (!list.some(item => item.name.toLowerCase() === c.name.toLowerCase())) {
+              list.push(c);
+            }
+          });
+        } catch (e) {}
+      }
+
+      categories = list;
+      renderCategoryChips();
+      renderFullCategoriesList();
+    }
+
+    async function loadTransactions() {
+      if (supabaseClient) {
+        try {
+          const { data, error } = await supabaseClient.from('transactions').select('*').order('date', { ascending: false });
+          if (!error && data && data.length > 0) {
+            transactions = data;
+            localStorage.setItem('family_transactions_cache', JSON.stringify(data));
+            return;
+          }
+        } catch (e) {
+          console.warn('Supabase transactions error:', e);
+        }
+      }
+
+      // Fallback to local storage or seeds
+      const localTx = localStorage.getItem('family_transactions_cache');
+      if (localTx) {
+        try {
+          const parsed = JSON.parse(localTx);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            transactions = parsed;
+            return;
+          }
+        } catch (e) {}
+      }
+
+      transactions = [...SEED_TRANSACTIONS];
+      localStorage.setItem('family_transactions_cache', JSON.stringify(transactions));
+    }
+
+    // --- 7. PERMISSION & MEMBER CONTROL ---
+    function selectActiveMember(memberId) {
+      activeMemberId = memberId;
+      localStorage.setItem('family_active_member', memberId);
+      adminFilterTarget = 'all'; // reset admin sub-filter
+      closeMemberLoginModal();
+      updateMemberUI();
+      refreshDashboard();
+
+      // Confetti feedback
+      if (window.confetti) {
+        window.confetti({ particleCount: 30, spread: 60, origin: { y: 0.1 } });
+      }
+    }
+
+    function updateMemberUI() {
+      const member = MEMBERS[activeMemberId];
+      document.getElementById('navMemberAvatar').innerText = member.avatar;
+      document.getElementById('navMemberName').innerText = member.name;
+      document.getElementById('navMemberRole').innerText = member.role === 'admin' ? 'Quản trị toàn gia đình' : 'Thành viên gia đình';
+
+      const banner = document.getElementById('roleBanner');
+      const bannerIcon = document.getElementById('roleBannerIcon');
+      const bannerTitle = document.getElementById('roleBannerTitle');
+      const bannerBadge = document.getElementById('roleBannerBadge');
+      const bannerDesc = document.getElementById('roleBannerDesc');
+      const adminBreakdown = document.getElementById('adminFamilyBreakdownSection');
+      const adminComparison = document.getElementById('adminMembersComparisonWrap');
+      const adminMemberFilterWrap = document.getElementById('adminMemberFilterWrap');
+      const formMemberWrap = document.getElementById('formMemberSelectWrap');
+
+      if (member.role === 'admin') {
+        banner.className = 'p-3.5 sm:p-4 rounded-2xl glass-panel border border-amber-500/30 flex items-center justify-between gap-3 bg-gradient-to-r from-amber-950/40 via-purple-950/20 to-slate-900/60';
+        bannerIcon.innerText = '👑';
+        bannerIcon.className = 'w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-xl text-amber-300';
+        bannerTitle.innerText = 'Chế độ Quản Trị Viên (Tôi - Admin)';
+        bannerBadge.innerText = 'Toàn Quyền';
+        bannerBadge.className = 'px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30';
+        bannerDesc.innerText = 'Bạn đang xem tổng thể dòng tiền của 5 thành viên (Tôi, Ba, Mẹ, Chị, Vợ). Bạn có thể xem tất cả hoặc lọc riêng từng người.';
+
+        adminBreakdown.classList.remove('hidden');
+        adminComparison.classList.remove('hidden');
+        adminMemberFilterWrap.classList.remove('hidden');
+        formMemberWrap.classList.remove('hidden');
+      } else {
+        banner.className = 'p-3.5 sm:p-4 rounded-2xl glass-panel border border-indigo-500/30 flex items-center justify-between gap-3 bg-gradient-to-r from-indigo-950/40 via-slate-900/50 to-slate-900/60';
+        bannerIcon.innerText = member.avatar;
+        bannerIcon.className = 'w-10 h-10 rounded-xl bg-indigo-500/20 border border-indigo-500/40 flex items-center justify-center text-xl text-indigo-300';
+        bannerTitle.innerText = `Ví Cá Nhân: ${member.name}`;
+        bannerBadge.innerText = 'Bảo Mật Riêng Tư';
+        bannerBadge.className = 'px-2 py-0.5 text-[10px] font-bold rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30';
+        bannerDesc.innerText = `Chế độ riêng tư: Bạn chỉ có thể xem số dư, biểu đồ và các giao dịch của riêng bạn (${member.name}).`;
+
+        adminBreakdown.classList.add('hidden');
+        adminComparison.classList.add('hidden');
+        adminMemberFilterWrap.classList.add('hidden');
+        formMemberWrap.classList.add('hidden');
+      }
+
+      // Pre-select form member
+      document.getElementById('formMemberSelect').value = activeMemberId;
+    }
+
+    function onAdminMemberFilterChange(val) {
+      adminFilterTarget = val;
+      refreshDashboard();
+    }
+
+    // --- 8. TIME FILTER ENGINE (DAILY, WEEKLY, MONTHLY, QUARTERLY, ALL) ---
+    function setTimeFilterMode(mode) {
+      timeFilterMode = mode;
+      document.querySelectorAll('.time-tab').forEach(b => {
+        b.className = 'time-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition cursor-pointer whitespace-nowrap';
+      });
+      const activeBtn = document.getElementById('tab-' + mode);
+      if (activeBtn) {
+        activeBtn.className = 'time-tab active px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white shadow transition cursor-pointer whitespace-nowrap';
+      }
+      refreshDashboard();
+    }
+
+    function shiftTimePeriod(direction) {
+      const d = new Date(currentAnchorDate);
+      if (timeFilterMode === 'daily') {
+        d.setDate(d.getDate() + direction);
+      } else if (timeFilterMode === 'weekly') {
+        d.setDate(d.getDate() + (direction * 7));
+      } else if (timeFilterMode === 'monthly') {
+        d.setMonth(d.getMonth() + direction);
+      } else if (timeFilterMode === 'quarterly') {
+        d.setMonth(d.getMonth() + (direction * 3));
+      }
+      currentAnchorDate = d;
+      refreshDashboard();
+    }
+
+    function resetToToday() {
+      currentAnchorDate = new Date();
+      refreshDashboard();
+    }
+
+    function getPeriodRange() {
+      const d = new Date(currentAnchorDate);
+      const y = d.getFullYear();
+      const m = d.getMonth(); // 0-11
+      const date = d.getDate();
+
+      if (timeFilterMode === 'daily') {
+        const iso = d.toISOString().split('T')[0];
+        return { start: iso, end: iso, label: `Ngày ${formatDateDisplay(iso)}` };
+      }
+
+      if (timeFilterMode === 'weekly') {
+        // Monday to Sunday of current week
+        const dayOfWeek = (d.getDay() + 6) % 7; // 0=Mon, 6=Sun
+        const mon = new Date(d);
+        mon.setDate(d.getDate() - dayOfWeek);
+        const sun = new Date(mon);
+        sun.setDate(mon.getDate() + 6);
+        const startIso = mon.toISOString().split('T')[0];
+        const endIso = sun.toISOString().split('T')[0];
+        return { start: startIso, end: endIso, label: `Tuần ${formatDateDisplay(startIso)} - ${formatDateDisplay(endIso)}` };
+      }
+
+      if (timeFilterMode === 'monthly') {
+        const start = new Date(y, m, 1).toISOString().split('T')[0];
+        const end = new Date(y, m + 1, 0).toISOString().split('T')[0];
+        const monthNum = (m + 1).toString().padStart(2, '0');
+        return { start, end, label: `Tháng ${monthNum} / ${y}` };
+      }
+
+      if (timeFilterMode === 'quarterly') {
+        const quarter = Math.floor(m / 3) + 1; // 1 to 4
+        const qStartMonth = (quarter - 1) * 3;
+        const start = new Date(y, qStartMonth, 1).toISOString().split('T')[0];
+        const end = new Date(y, qStartMonth + 3, 0).toISOString().split('T')[0];
+        return { start, end, label: `Quý ${quarter} / Năm ${y}` };
+      }
+
+      return { start: '1970-01-01', end: '2099-12-31', label: 'Toàn Bộ Thời Gian' };
+    }
+
+    function getFilteredTransactions() {
+      const range = getPeriodRange();
+      const isAdmin = MEMBERS[activeMemberId].role === 'admin';
+
+      return transactions.filter(t => {
+        // Time condition
+        if (timeFilterMode !== 'all') {
+          if (t.date < range.start || t.date > range.end) {
+            return false;
+          }
+        }
+
+        // Member condition
+        if (!isAdmin) {
+          // Regular member only sees their own transactions
+          return t.member === activeMemberId;
+        } else {
+          // Admin can filter by all or specific member
+          if (adminFilterTarget !== 'all') {
+            return t.member === adminFilterTarget;
+          }
+          return true;
+        }
+      });
+    }
+
+    // --- 9. DASHBOARD REFRESH & CHARTS ---
+    function refreshDashboard() {
+      const range = getPeriodRange();
+      document.getElementById('periodDisplayLabel').innerText = range.label;
+
+      const filtered = getFilteredTransactions();
+
+      // Calculate totals
+      let totalIncome = 0;
+      let totalExpense = 0;
+      let incomeCount = 0;
+      let expenseCount = 0;
+
+      filtered.forEach(t => {
+        const amt = Number(t.amount) || 0;
+        if (t.type === 'income') {
+          totalIncome += amt;
+          incomeCount++;
+        } else {
+          totalExpense += amt;
+          expenseCount++;
+        }
+      });
+
+      const netBalance = totalIncome - totalExpense;
+      const savingsRate = totalIncome > 0 ? Math.max(0, Math.round((netBalance / totalIncome) * 100)) : 0;
+
+      // Update stat cards
+      document.getElementById('statNetBalance').innerText = formatVND(netBalance);
+      document.getElementById('statTotalIncome').innerText = formatVND(totalIncome);
+      document.getElementById('statTotalExpense').innerText = formatVND(totalExpense);
+      document.getElementById('statIncomeCount').innerText = `${incomeCount} khoản`;
+      document.getElementById('statExpenseCount').innerText = `${expenseCount} khoản`;
+      document.getElementById('statSavingsRate').innerText = `${savingsRate}%`;
+      document.getElementById('statNetFlowLabel').innerText = formatVND(netBalance);
+
+      // Card holder display
+      const isAdmin = MEMBERS[activeMemberId].role === 'admin';
+      if (!isAdmin) {
+        document.getElementById('cardHolderName').innerText = MEMBERS[activeMemberId].name.toUpperCase();
+      } else {
+        document.getElementById('cardHolderName').innerText = adminFilterTarget === 'all' ? 'TỔNG GIA ĐÌNH' : MEMBERS[adminFilterTarget].name.toUpperCase();
+      }
+
+      // Render Admin Member breakdown cards
+      if (isAdmin) {
+        renderAdminMemberBreakdown();
+      }
+
+      // Render Charts
+      renderCashflowChart(filtered);
+      renderCategoryChart(filtered);
+      if (isAdmin) {
+        renderMemberComparisonChart();
+      }
+
+      // Render transaction history list
+      renderTransactionList();
+    }
+
+    function renderAdminMemberBreakdown() {
+      const container = document.getElementById('memberCardsContainer');
+      const allMembers = ['admin', 'ba', 'me', 'chi', 'vo'];
+
+      container.innerHTML = allMembers.map(mId => {
+        const m = MEMBERS[mId];
+        // Calculate member specific stats for current filtered time
+        const range = getPeriodRange();
+        const memberTx = transactions.filter(t => {
+          if (timeFilterMode !== 'all') {
+            if (t.date < range.start || t.date > range.end) return false;
+          }
+          return t.member === mId;
+        });
+
+        const inc = memberTx.filter(t => t.type === 'income').reduce((acc, t) => acc + Number(t.amount), 0);
+        const exp = memberTx.filter(t => t.type === 'expense').reduce((acc, t) => acc + Number(t.amount), 0);
+        const bal = inc - exp;
+
+        return `
+          <div onclick="filterByMemberFromCard('${mId}')" class="glass-card-interactive p-3.5 rounded-xl border border-white/10 hover:border-amber-400 cursor-pointer transition">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center space-x-2">
+                <span class="text-xl">${m.avatar}</span>
+                <span class="font-bold text-xs text-white">${m.name}</span>
+              </div>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-slate-300 font-mono">${memberTx.length} GD</span>
+            </div>
+            <div class="space-y-1 text-[11px]">
+              <div class="flex justify-between text-slate-400">
+                <span>Thu:</span>
+                <span class="text-emerald-400 font-semibold">${formatVND(inc)}</span>
+              </div>
+              <div class="flex justify-between text-slate-400">
+                <span>Chi:</span>
+                <span class="text-rose-400 font-semibold">${formatVND(exp)}</span>
+              </div>
+              <div class="flex justify-between pt-1 border-t border-white/10 font-bold">
+                <span class="text-slate-300">Dư:</span>
+                <span class="${bal >= 0 ? 'text-amber-300' : 'text-rose-400'}">${formatVND(bal)}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function filterByMemberFromCard(mId) {
+      document.getElementById('adminMemberFilterSelect').value = mId;
+      adminFilterTarget = mId;
+      refreshDashboard();
+    }
+
+    // --- 10. CHART RENDERING ENGINE (CHART.JS) ---
+    function renderCashflowChart(filteredTx) {
+      const ctx = document.getElementById('cashflowChart').getContext('2d');
+
+      // Group by date or interval
+      const dateMap = {};
+      filteredTx.forEach(t => {
+        if (!dateMap[t.date]) {
+          dateMap[t.date] = { income: 0, expense: 0 };
+        }
+        if (t.type === 'income') {
+          dateMap[t.date].income += Number(t.amount);
+        } else {
+          dateMap[t.date].expense += Number(t.amount);
+        }
+      });
+
+      const sortedDates = Object.keys(dateMap).sort();
+      const labels = sortedDates.map(d => formatDateDisplay(d));
+      const incomeData = sortedDates.map(d => dateMap[d].income);
+      const expenseData = sortedDates.map(d => dateMap[d].expense);
+
+      if (cashflowChartInstance) {
+        cashflowChartInstance.destroy();
+      }
+
+      cashflowChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels.length ? labels : ['Chưa có dữ liệu'],
+          datasets: [
+            {
+              label: 'Thu nhập',
+              data: labels.length ? incomeData : [0],
+              backgroundColor: 'rgba(16, 185, 129, 0.85)',
+              borderRadius: 6,
+              borderWidth: 0,
+            },
+            {
+              label: 'Chi tiêu',
+              data: labels.length ? expenseData : [0],
+              backgroundColor: 'rgba(244, 63, 94, 0.85)',
+              borderRadius: 6,
+              borderWidth: 0,
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: { color: '#cbd5e1', font: { family: 'Plus Jakarta Sans', size: 11, weight: 'bold' } }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(c) {
+                  return c.dataset.label + ': ' + formatVND(c.raw);
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: '#94a3b8', font: { size: 10 } },
+              grid: { color: 'rgba(255, 255, 255, 0.05)' }
+            },
+            y: {
+              ticks: {
+                color: '#94a3b8',
+                font: { size: 10 },
+                callback: function(v) {
+                  return v >= 1000000 ? (v / 1000000) + 'M' : v >= 1000 ? (v / 1000) + 'k' : v;
+                }
+              },
+              grid: { color: 'rgba(255, 255, 255, 0.08)' }
+            }
+          }
+        }
+      });
+    }
+
+    function renderCategoryChart(filteredTx) {
+      const ctx = document.getElementById('categoryChart').getContext('2d');
+
+      const expenseTx = filteredTx.filter(t => t.type === 'expense');
+      const catMap = {};
+
+      expenseTx.forEach(t => {
+        catMap[t.category] = (catMap[t.category] || 0) + Number(t.amount);
+      });
+
+      const labels = Object.keys(catMap);
+      const data = Object.values(catMap);
+
+      if (categoryChartInstance) {
+        categoryChartInstance.destroy();
+      }
+
+      const colors = [
+        '#6366f1', '#ec4899', '#f59e0b', '#10b981', '#06b6d4',
+        '#8b5cf6', '#f97316', '#14b8a6', '#e11d48', '#84cc16'
+      ];
+
+      categoryChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels.length ? labels : ['Chưa có chi tiêu'],
+          datasets: [{
+            data: labels.length ? data : [1],
+            backgroundColor: labels.length ? colors.slice(0, labels.length) : ['rgba(255,255,255,0.1)'],
+            borderWidth: 2,
+            borderColor: '#0f172a',
+            hoverOffset: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: {
+                color: '#cbd5e1',
+                boxWidth: 12,
+                font: { family: 'Plus Jakarta Sans', size: 10, weight: 'bold' }
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(c) {
+                  return c.label + ': ' + formatVND(c.raw);
+                }
+              }
+            }
+          },
+          cutout: '68%'
+        }
+      });
+    }
+
+    function renderMemberComparisonChart() {
+      const ctx = document.getElementById('memberComparisonChart').getContext('2d');
+      const range = getPeriodRange();
+
+      const memberIds = ['admin', 'ba', 'me', 'chi', 'vo'];
+      const memberNames = memberIds.map(id => MEMBERS[id].name);
+
+      const expenses = memberIds.map(id => {
+        return transactions
+          .filter(t => {
+            if (timeFilterMode !== 'all') {
+              if (t.date < range.start || t.date > range.end) return false;
+            }
+            return t.member === id && t.type === 'expense';
+          })
+          .reduce((sum, t) => sum + Number(t.amount), 0);
+      });
+
+      const incomes = memberIds.map(id => {
+        return transactions
+          .filter(t => {
+            if (timeFilterMode !== 'all') {
+              if (t.date < range.start || t.date > range.end) return false;
+            }
+            return t.member === id && t.type === 'income';
+          })
+          .reduce((sum, t) => sum + Number(t.amount), 0);
+      });
+
+      if (memberComparisonChartInstance) {
+        memberComparisonChartInstance.destroy();
+      }
+
+      memberComparisonChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: memberNames,
+          datasets: [
+            {
+              label: 'Chi tiêu thành viên',
+              data: expenses,
+              backgroundColor: 'rgba(244, 63, 94, 0.85)',
+              borderRadius: 6
+            },
+            {
+              label: 'Thu nhập thành viên',
+              data: incomes,
+              backgroundColor: 'rgba(59, 130, 246, 0.85)',
+              borderRadius: 6
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: { color: '#cbd5e1', font: { family: 'Plus Jakarta Sans', size: 11, weight: 'bold' } }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(c) {
+                  return c.dataset.label + ': ' + formatVND(c.raw);
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: '#cbd5e1', font: { weight: 'bold' } },
+              grid: { display: false }
+            },
+            y: {
+              ticks: {
+                color: '#94a3b8',
+                callback: function(v) { return (v / 1000000) + 'M'; }
+              },
+              grid: { color: 'rgba(255, 255, 255, 0.08)' }
+            }
+          }
+        }
+      });
+    }
+
+    // --- 11. TRANSACTION HISTORY LIST ---
+    function renderTransactionList() {
+      const container = document.getElementById('transactionsListContainer');
+      const search = document.getElementById('txSearchInput').value.toLowerCase().trim();
+      const typeFilter = document.getElementById('txTypeFilter').value;
+
+      let list = getFilteredTransactions();
+
+      if (typeFilter !== 'all') {
+        list = list.filter(t => t.type === typeFilter);
+      }
+
+      if (search) {
+        list = list.filter(t => 
+          (t.note && t.note.toLowerCase().includes(search)) ||
+          (t.category && t.category.toLowerCase().includes(search)) ||
+          MEMBERS[t.member].name.toLowerCase().includes(search)
+        );
+      }
+
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-12 text-slate-400">
+            <i class="fa-regular fa-folder-open text-4xl mb-3 text-slate-600 block"></i>
+            <p class="text-sm font-medium">Chưa có giao dịch nào trong khoảng thời gian này.</p>
+            <button onclick="openAddTransactionModal()" class="mt-3 text-xs text-indigo-400 hover:underline font-semibold cursor-pointer">
+              + Thêm giao dịch ngay
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = list.map(t => {
+        const member = MEMBERS[t.member] || MEMBERS.admin;
+        const isExp = t.type === 'expense';
+        const catObj = categories.find(c => c.name.toLowerCase() === t.category.toLowerCase());
+        const icon = catObj ? catObj.icon : (isExp ? '🔴' : '🟢');
+        const isCustom = catObj ? catObj.isCustom : true;
+
+        return `
+          <div class="glass-card-interactive p-3.5 sm:p-4 rounded-xl flex items-center justify-between gap-3 border border-white/10 group">
+            <div class="flex items-center space-x-3 sm:space-x-4 min-w-0">
+              <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl ${isExp ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30' : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'} flex items-center justify-center text-lg sm:text-xl shrink-0">
+                ${icon}
+              </div>
+              <div class="min-w-0">
+                <div class="flex items-center space-x-2">
+                  <span class="font-bold text-sm sm:text-base text-white truncate">${t.category}</span>
+                  ${isCustom ? '<span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-semibold border border-amber-500/30">Tùy biến</span>' : ''}
+                </div>
+                <div class="flex items-center space-x-2 text-xs text-slate-400 mt-0.5">
+                  <span class="flex items-center space-x-1">
+                    <span>${member.avatar}</span>
+                    <span class="text-slate-300 font-medium">${member.name}</span>
+                  </span>
+                  <span>•</span>
+                  <span>${formatDateDisplay(t.date)}</span>
+                  ${t.note ? `<span class="hidden sm:inline">•</span><span class="hidden sm:inline truncate text-slate-300">"${t.note}"</span>` : ''}
+                </div>
+                ${t.note ? `<p class="sm:hidden text-[11px] text-slate-400 truncate mt-0.5">"${t.note}"</p>` : ''}
+              </div>
+            </div>
+
+            <div class="flex items-center space-x-3 shrink-0">
+              <div class="text-right">
+                <div class="font-black text-sm sm:text-base ${isExp ? 'text-rose-400' : 'text-emerald-400'}">
+                  ${isExp ? '-' : '+'}${formatVND(t.amount)}
+                </div>
+                <div class="text-[10px] text-slate-400 uppercase font-semibold">${isExp ? 'Chi tiêu' : 'Thu nhập'}</div>
+              </div>
+              <button onclick="handleDeleteTransaction('${t.id}')" class="opacity-40 group-hover:opacity-100 hover:text-rose-400 text-slate-400 p-2 transition cursor-pointer" title="Xóa giao dịch">
+                <i class="fa-regular fa-trash-can text-sm"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // --- 12. ADD TRANSACTION & DYNAMIC CUSTOM CATEGORY ---
+    function setTxFormType(type) {
+      currentFormType = type;
+      const btnExp = document.getElementById('btnFormExpense');
+      const btnInc = document.getElementById('btnFormIncome');
+
+      if (type === 'expense') {
+        btnExp.className = 'py-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-2 bg-rose-600 text-white shadow';
+        btnInc.className = 'py-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-2 text-slate-400 hover:text-white';
+      } else {
+        btnInc.className = 'py-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-2 bg-emerald-600 text-white shadow';
+        btnExp.className = 'py-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-2 text-slate-400 hover:text-white';
+      }
+      renderCategoryChips();
+    }
+
+    function setFormAmountPreset(val) {
+      document.getElementById('formAmount').value = val;
+    }
+
+    function renderCategoryChips() {
+      const container = document.getElementById('categoryChipsContainer');
+      const filteredCats = categories.filter(c => c.type === currentFormType);
+
+      if (!selectedFormCategory && filteredCats.length > 0) {
+        selectedFormCategory = filteredCats[0].name;
+      }
+
+      container.innerHTML = filteredCats.map(c => {
+        const isSelected = selectedFormCategory.toLowerCase() === c.name.toLowerCase();
+        return `
+          <button type="button" onclick="selectFormCategory('${c.name}')" class="p-2 rounded-xl text-left text-xs font-medium flex items-center space-x-2 border transition cursor-pointer ${
+            isSelected ? 'bg-indigo-600 text-white border-indigo-400 shadow-md shadow-indigo-600/30' : 'bg-slate-900/80 text-slate-300 border-white/10 hover:border-white/30'
+          }">
+            <span class="text-base">${c.icon}</span>
+            <span class="truncate">${c.name}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function selectFormCategory(name) {
+      selectedFormCategory = name;
+      // Close custom input if open
+      document.getElementById('customCategoryInputWrap').classList.add('hidden');
+      renderCategoryChips();
+    }
+
+    function toggleCustomCategoryInput() {
+      const wrap = document.getElementById('customCategoryInputWrap');
+      wrap.classList.toggle('hidden');
+      if (!wrap.classList.contains('hidden')) {
+        document.getElementById('customCatName').focus();
+      }
+    }
+
+    async function handleSaveTransaction(e) {
+      e.preventDefault();
+      const amount = Number(document.getElementById('formAmount').value);
+      const date = document.getElementById('formDate').value;
+      const note = document.getElementById('formNote').value.trim();
+      const member = document.getElementById('formMemberSelect').value;
+
+      // Determine category (custom vs selected)
+      const customWrap = document.getElementById('customCategoryInputWrap');
+      const customName = document.getElementById('customCatName').value.trim();
+      const customIcon = document.getElementById('customCatIcon').value;
+
+      let finalCategory = selectedFormCategory;
+
+      if (!customWrap.classList.contains('hidden') && customName) {
+        finalCategory = customName;
+        // Save new dynamic category to categories list & Supabase!
+        const existingCat = categories.find(c => c.name.toLowerCase() === customName.toLowerCase());
+        if (!existingCat) {
+          const newCat = {
+            id: 'cat-' + Date.now(),
+            name: customName,
+            type: currentFormType,
+            icon: customIcon || '✨',
+            isCustom: true
+          };
+          categories.push(newCat);
+
+          // Save to local storage
+          const localCustom = JSON.parse(localStorage.getItem('family_custom_categories') || '[]');
+          localCustom.push(newCat);
+          localStorage.setItem('family_custom_categories', JSON.stringify(localCustom));
+
+          // Save to Supabase table categories if connected
+          if (supabaseClient) {
+            try {
+              await supabaseClient.from('categories').insert([{
+                name: newCat.name,
+                type: newCat.type,
+                icon: newCat.icon,
+                is_custom: true
+              }]);
+            } catch (err) {
+              console.warn('Lỗi lưu custom category lên Supabase:', err);
+            }
+          }
+        }
+      }
+
+      if (!finalCategory) {
+        alert('Vui lòng chọn hoặc gõ danh mục giao dịch!');
+        return;
+      }
+
+      const newTx = {
+        id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'tx-' + Date.now(),
+        member: member,
+        type: currentFormType,
+        amount: amount,
+        category: finalCategory,
+        note: note,
+        date: date
+      };
+
+      // Save to Supabase if connected
+      if (supabaseClient) {
+        try {
+          await supabaseClient.from('transactions').insert([newTx]);
+        } catch (err) {
+          console.warn('Lỗi lưu giao dịch lên Supabase:', err);
+        }
+      }
+
+      // Add to local state & cache
+      transactions.unshift(newTx);
+      localStorage.setItem('family_transactions_cache', JSON.stringify(transactions));
+
+      // Reset form
+      document.getElementById('formAmount').value = '';
+      document.getElementById('formNote').value = '';
+      document.getElementById('customCatName').value = '';
+      document.getElementById('customCategoryInputWrap').classList.add('hidden');
+
+      closeAddTransactionModal();
+      refreshDashboard();
+      renderCategoryChips();
+      renderFullCategoriesList();
+
+      // Confetti feedback
+      if (window.confetti) {
+        window.confetti({ particleCount: 50, spread: 70, origin: { y: 0.6 } });
+      }
+    }
+
+    async function handleDeleteTransaction(id) {
+      if (!confirm('Bạn có chắc chắn muốn xóa giao dịch này không?')) return;
+
+      if (supabaseClient) {
+        try {
+          await supabaseClient.from('transactions').delete().eq('id', id);
+        } catch (err) {
+          console.warn('Supabase delete error:', err);
+        }
+      }
+
+      transactions = transactions.filter(t => t.id !== id);
+      localStorage.setItem('family_transactions_cache', JSON.stringify(transactions));
+      refreshDashboard();
+    }
+
+    // --- 13. QUICK CATEGORY MANAGER ---
+    function renderFullCategoriesList() {
+      const container = document.getElementById('fullCategoriesList');
+      container.innerHTML = categories.map(c => {
+        return `
+          <div class="flex items-center justify-between p-2 rounded-lg bg-slate-900/60 border border-white/5 text-xs">
+            <div class="flex items-center space-x-2">
+              <span class="text-base">${c.icon}</span>
+              <span class="text-white font-medium">${c.name}</span>
+              ${c.isCustom ? '<span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">Tùy biến</span>' : ''}
+            </div>
+            <span class="text-[10px] uppercase font-bold ${c.type === 'expense' ? 'text-rose-400' : 'text-emerald-400'}">
+              ${c.type === 'expense' ? 'Chi tiêu' : 'Thu nhập'}
+            </span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function handleQuickAddCategory() {
+      const name = document.getElementById('quickCatName').value.trim();
+      const icon = document.getElementById('quickCatIcon').value.trim() || '✨';
+      const type = document.getElementById('quickCatType').value;
+
+      if (!name) return;
+
+      const newCat = {
+        id: 'cat-' + Date.now(),
+        name: name,
+        type: type,
+        icon: icon,
+        isCustom: true
+      };
+
+      categories.push(newCat);
+      const localCustom = JSON.parse(localStorage.getItem('family_custom_categories') || '[]');
+      localCustom.push(newCat);
+      localStorage.setItem('family_custom_categories', JSON.stringify(localCustom));
+
+      if (supabaseClient) {
+        try {
+          await supabaseClient.from('categories').insert([{
+            name: newCat.name,
+            type: newCat.type,
+            icon: newCat.icon,
+            is_custom: true
+          }]);
+        } catch (e) {}
+      }
+
+      document.getElementById('quickCatName').value = '';
+      renderFullCategoriesList();
+      renderCategoryChips();
+      refreshDashboard();
+    }
+
+    // --- 14. MODAL TOGGLES ---
+    function showMemberLoginModal() { document.getElementById('memberLoginModal').classList.remove('hidden'); }
+    function closeMemberLoginModal() { document.getElementById('memberLoginModal').classList.add('hidden'); }
+
+    function openAddTransactionModal() {
+      document.getElementById('formMemberSelect').value = activeMemberId;
+      document.getElementById('addTransactionModal').classList.remove('hidden');
+      renderCategoryChips();
+    }
+    function closeAddTransactionModal() { document.getElementById('addTransactionModal').classList.add('hidden'); }
+
+    function openSupabaseModal() {
+      let url = DEFAULT_SUPABASE_URL;
+      let key = DEFAULT_SUPABASE_KEY;
+      const savedCfg = localStorage.getItem('family_supabase_config');
+      if (savedCfg) {
+        try {
+          const cfg = JSON.parse(savedCfg);
+          if (cfg.url) url = cfg.url;
+          if (cfg.key) key = cfg.key;
+        } catch (e) {}
+      }
+      document.getElementById('inputSupabaseUrl').value = url;
+      document.getElementById('inputSupabaseKey').value = key;
+      document.getElementById('supabaseModal').classList.remove('hidden');
+    }
+    function closeSupabaseModal() { document.getElementById('supabaseModal').classList.add('hidden'); }
+
+    function openCategoryManagerModal() {
+      renderFullCategoriesList();
+      document.getElementById('categoryManagerModal').classList.remove('hidden');
+    }
+    function closeCategoryManagerModal() { document.getElementById('categoryManagerModal').classList.add('hidden'); }
+  </script>
+</body>
+</html>
