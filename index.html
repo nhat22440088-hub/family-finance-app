@@ -1,8 +1,11 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" class="scroll-smooth">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#090d16">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Quản Lý Tài Chính Gia Đình 3D - Supabase Cloud Database</title>
   
   <!-- Google Fonts: Plus Jakarta Sans -->
@@ -49,17 +52,52 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
   <style>
-    /* 3D Glassmorphism Styles */
+    /* 3D Glassmorphism & Responsive Styles */
+    html {
+      scroll-behavior: smooth;
+      -webkit-text-size-adjust: 100%;
+    }
+
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
       background: radial-gradient(circle at 20% 20%, #1e1b4b 0%, #0f172a 40%, #020617 100%);
       color: #f8fafc;
       min-height: 100vh;
       overflow-x: hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Prevent auto-zoom on iOS when focusing inputs */
+    @media (max-width: 640px) {
+      input, select, textarea {
+        font-size: 16px !important;
+      }
+    }
+
+    /* Safe Area Inset Support for iPhone Notch / Dynamic Island */
+    .safe-area-pb {
+      padding-bottom: max(0.6rem, env(safe-area-inset-bottom));
+    }
+    .safe-area-pt {
+      padding-top: max(0.5rem, env(safe-area-inset-top));
+    }
+
+    /* Fast Touch Responsiveness */
+    button, select, input, a {
+      touch-action: manipulation;
+    }
+
+    /* Hide scrollbars for slick mobile carousels */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
     }
 
     .glass-panel {
-      background: rgba(15, 23, 42, 0.65);
+      background: rgba(15, 23, 42, 0.72);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid rgba(255, 255, 255, 0.12);
@@ -67,14 +105,15 @@
     }
 
     .glass-card-interactive {
-      background: rgba(30, 41, 59, 0.55);
+      background: rgba(30, 41, 59, 0.6);
       backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.1);
-      transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+      transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
     }
 
     .glass-card-interactive:hover {
-      transform: translateY(-4px) scale(1.01);
+      transform: translateY(-3px) scale(1.008);
       border-color: rgba(255, 255, 255, 0.28);
       box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.6), 0 0 20px rgba(99, 102, 241, 0.2);
     }
@@ -102,8 +141,8 @@
 
     /* Chip Card */
     .chip-3d {
-      width: 44px;
-      height: 32px;
+      width: 40px;
+      height: 28px;
       background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 50%, #d97706 100%);
       border-radius: 6px;
       border: 1px solid #78350f;
@@ -119,7 +158,7 @@
       border-radius: 3px;
     }
 
-    /* Custom Scrollbar */
+    /* Custom Scrollbar for Desktop/Laptop */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
@@ -173,50 +212,56 @@
     }
   </style>
 </head>
-<body class="selection:bg-indigo-500 selection:text-white relative">
+<body class="selection:bg-indigo-500 selection:text-white relative pb-24 sm:pb-8">
   <!-- Glowing Background Orbs -->
   <div class="glow-orb-1"></div>
   <div class="glow-orb-2"></div>
   <div class="glow-orb-3"></div>
 
   <!-- NAVIGATION BAR -->
-  <nav class="sticky top-0 z-40 w-full glass-panel border-b border-white/10 px-4 sm:px-8 py-3.5 flex items-center justify-between shadow-2xl">
-    <div class="flex items-center space-x-3">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-400 via-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 transform -rotate-3 hover:rotate-0 transition-transform">
-        <i class="fa-solid fa-vault text-lg"></i>
+  <nav class="sticky top-0 z-40 w-full glass-panel border-b border-white/10 px-3 sm:px-8 py-2.5 sm:py-3.5 flex items-center justify-between shadow-2xl safe-area-pt">
+    <div class="flex items-center space-x-2 sm:space-x-3 min-w-0">
+      <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-amber-400 via-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 transform -rotate-3 hover:rotate-0 transition-transform shrink-0">
+        <i class="fa-solid fa-vault text-base sm:text-lg"></i>
       </div>
-      <div>
-        <div class="flex items-center space-x-2">
-          <span class="font-black text-lg sm:text-xl tracking-tight bg-gradient-to-r from-amber-300 via-white to-indigo-200 bg-clip-text text-transparent">GiaĐình Finance</span>
-          <span class="text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">3D Cloud</span>
+      <div class="min-w-0">
+        <div class="flex items-center space-x-1.5 sm:space-x-2">
+          <span class="font-black text-base sm:text-xl tracking-tight bg-gradient-to-r from-amber-300 via-white to-indigo-200 bg-clip-text text-transparent truncate">GiaĐình Finance</span>
+          <span class="text-[9px] sm:text-[10px] uppercase font-extrabold tracking-wider px-1.5 sm:px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 shrink-0">3D Cloud</span>
         </div>
-        <p class="text-xs text-slate-400 hidden sm:block">Quản Lý Tài Chính & Dòng Tiền Gia Đình</p>
+        <p class="text-[11px] text-slate-400 hidden sm:block truncate">Quản Lý Tài Chính & Dòng Tiền Gia Đình</p>
       </div>
     </div>
 
     <!-- Center/Right Actions -->
-    <div class="flex items-center space-x-2 sm:space-x-3">
+    <div class="flex items-center space-x-1.5 sm:space-x-3 shrink-0">
+      <!-- Direct Download single index.html button -->
+      <a href="index.html" download="index.html" class="hidden md:flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-white/15 transition cursor-pointer" title="Tải file index.html độc lập về máy tính">
+        <i class="fa-solid fa-download text-indigo-400"></i>
+        <span>Tải index.html</span>
+      </a>
+
       <!-- Database Connection Status Badge -->
-      <button onclick="openSupabaseModal()" id="supabaseStatusBadge" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-300 border border-amber-500/30 hover:bg-amber-500/20 transition cursor-pointer" title="Bấm để cấu hình Supabase Cloud DB">
+      <button onclick="openSupabaseModal()" id="supabaseStatusBadge" class="flex items-center space-x-1 sm:space-x-1.5 px-2 sm:px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-300 border border-amber-500/30 hover:bg-amber-500/20 transition cursor-pointer" title="Cấu hình kết nối Supabase Cloud DB">
         <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-        <span id="supabaseStatusText" class="hidden md:inline">Chế độ Demo / Cục bộ</span>
-        <span class="md:hidden">DB</span>
-        <i class="fa-solid fa-gear text-[10px] ml-1"></i>
+        <span id="supabaseStatusText" class="hidden sm:inline text-[11px] sm:text-xs">Chế độ Demo / Cục bộ</span>
+        <span class="sm:hidden text-[10px] font-bold">DB</span>
+        <i class="fa-solid fa-gear text-[10px] ml-0.5 text-amber-400"></i>
       </button>
 
       <!-- Member Profile Switch Button -->
-      <button onclick="showMemberLoginModal()" class="flex items-center space-x-2 px-3 py-1.5 rounded-xl glass-card-interactive text-xs font-medium border border-white/20 text-white cursor-pointer hover:border-indigo-400">
-        <span id="navMemberAvatar" class="text-base">👑</span>
+      <button onclick="showMemberLoginModal()" class="flex items-center space-x-1.5 sm:space-x-2 px-2.5 sm:px-3 py-1.5 rounded-xl glass-card-interactive text-xs font-medium border border-white/20 text-white cursor-pointer hover:border-indigo-400">
+        <span id="navMemberAvatar" class="text-sm sm:text-base">👑</span>
         <div class="text-left hidden sm:block">
           <div id="navMemberName" class="font-bold leading-tight">Tôi (Admin)</div>
           <div id="navMemberRole" class="text-[10px] text-amber-400">Quản trị toàn gia đình</div>
         </div>
-        <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 ml-1"></i>
+        <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 ml-0.5"></i>
       </button>
 
       <!-- Quick Add Transaction Button -->
-      <button onclick="openAddTransactionModal()" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs sm:text-sm font-bold shadow-lg shadow-indigo-500/30 flex items-center space-x-1.5 transition active:scale-95 cursor-pointer">
-        <i class="fa-solid fa-plus"></i>
+      <button onclick="openAddTransactionModal()" class="px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs sm:text-sm font-bold shadow-lg shadow-indigo-500/30 flex items-center space-x-1.5 transition active:scale-95 cursor-pointer">
+        <i class="fa-solid fa-plus text-xs sm:text-sm"></i>
         <span class="hidden sm:inline">Thêm Giao Dịch</span>
       </button>
     </div>
@@ -300,10 +345,10 @@
     </div>
 
     <!-- 3D HERO METRIC CARDS SECTION -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
       
       <!-- Card 1: Family 3D Virtual ATM Card -->
-      <div class="family-credit-card rounded-2xl p-5 flex flex-col justify-between h-48 md:col-span-2 lg:col-span-1 shadow-card-3d transform hover:-translate-y-1 transition duration-300">
+      <div class="family-credit-card rounded-2xl p-5 flex flex-col justify-between h-52 md:col-span-2 lg:col-span-1 shadow-card-3d transform hover:-translate-y-1 transition duration-300">
         <div class="flex items-center justify-between">
           <div class="flex items-center space-x-2">
             <div class="chip-3d"></div>
@@ -316,6 +361,9 @@
           <div class="text-[11px] text-slate-400 font-medium">Số dư khả dụng hiện tại</div>
           <div id="statNetBalance" class="text-2xl sm:text-3xl font-black tracking-tight text-white mt-0.5">
             0 ₫
+          </div>
+          <div class="text-[10px] text-emerald-400 font-medium mt-0.5">
+            <i class="fa-solid fa-shield-halved mr-1"></i>Ngân sách sau khi đã trích tiết kiệm
           </div>
         </div>
 
@@ -332,7 +380,7 @@
       </div>
 
       <!-- Card 2: Total Income -->
-      <div class="glass-card-interactive rounded-2xl p-5 flex flex-col justify-between h-48 border-t-2 border-emerald-500/80">
+      <div class="glass-card-interactive rounded-2xl p-5 flex flex-col justify-between h-52 border-t-2 border-emerald-500/80">
         <div class="flex items-center justify-between">
           <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Tổng Thu Nhập</span>
           <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center border border-emerald-500/30">
@@ -344,7 +392,7 @@
           <div id="statTotalIncome" class="text-2xl sm:text-3xl font-black text-emerald-400 tracking-tight">
             0 ₫
           </div>
-          <p id="statIncomeSubtitle" class="text-xs text-slate-400 mt-1">Gồm lương, thưởng & các nguồn thu</p>
+          <p id="statIncomeSubtitle" class="text-xs text-slate-400 mt-1">Lương, thưởng & các nguồn thu tháng 08</p>
         </div>
 
         <div class="flex items-center justify-between text-xs text-slate-300 pt-2 border-t border-white/5">
@@ -353,8 +401,59 @@
         </div>
       </div>
 
-      <!-- Card 3: Total Expense -->
-      <div class="glass-card-interactive rounded-2xl p-5 flex flex-col justify-between h-48 border-t-2 border-rose-500/80">
+      <!-- Card 3: SMART SAVINGS VAULT (CỘNG DỒN ĐỘC LẬP) -->
+      <div class="glass-card-interactive rounded-2xl p-5 flex flex-col justify-between h-52 border-t-2 border-amber-500/90 relative overflow-hidden bg-gradient-to-br from-amber-500/10 via-slate-900/80 to-slate-950">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-1.5">
+            <span class="text-xs font-bold text-amber-300 uppercase tracking-wider">Quỹ Tích Lũy</span>
+            <span class="px-1.5 py-0.5 text-[9px] font-extrabold rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">ĐỘC LẬP</span>
+          </div>
+          <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-300 flex items-center justify-center border border-amber-500/40 shadow-lg shadow-amber-500/20">
+            <i class="fa-solid fa-vault text-sm"></i>
+          </div>
+        </div>
+
+        <div>
+          <div class="text-[11px] text-slate-400 font-medium flex items-center justify-between">
+            <span>Tổng tích lũy cộng dồn:</span>
+            <span class="text-amber-400 font-bold" id="statCumulativeSavingsLabel">151.000.000 ₫</span>
+          </div>
+          <div id="statMonthlySavings" class="text-2xl sm:text-3xl font-black text-amber-400 tracking-tight mt-0.5">
+            0 ₫
+          </div>
+          <p class="text-[11px] text-amber-300/80 mt-0.5">Trích riêng tháng này (Không bị trừ chi tiêu)</p>
+        </div>
+
+        <div class="flex items-center justify-between text-xs text-slate-300 pt-2 border-t border-white/5">
+          <span>Tiến độ mục tiêu:</span>
+          <span id="statSavingsGoalProgress" class="font-bold text-amber-300">75.5% (200 Tr)</span>
+        </div>
+      </div>
+
+      <!-- Card 4: SPENDABLE OPERATING BUDGET (NGÂN SÁCH THỰC TẾ CHO CHI TIÊU) -->
+      <div class="glass-card-interactive rounded-2xl p-5 flex flex-col justify-between h-52 border-t-2 border-teal-500/80">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-teal-300 uppercase tracking-wider">Ngân Sách Khả Dụng</span>
+          <div class="w-9 h-9 rounded-xl bg-teal-500/20 text-teal-300 flex items-center justify-center border border-teal-500/30">
+            <i class="fa-solid fa-wallet text-sm"></i>
+          </div>
+        </div>
+
+        <div>
+          <div id="statSpendableBudget" class="text-2xl sm:text-3xl font-black text-teal-300 tracking-tight">
+            0 ₫
+          </div>
+          <p class="text-xs text-slate-400 mt-1">= Tổng Thu Nhập - Trích Tiết Kiệm</p>
+        </div>
+
+        <div class="flex items-center justify-between text-xs text-slate-300 pt-2 border-t border-white/5">
+          <span>Còn lại có thể tiêu:</span>
+          <span id="statRemainingOperatingBudget" class="font-bold text-teal-300">0 ₫</span>
+        </div>
+      </div>
+
+      <!-- Card 5: Total Expense -->
+      <div class="glass-card-interactive rounded-2xl p-5 flex flex-col justify-between h-52 border-t-2 border-rose-500/80">
         <div class="flex items-center justify-between">
           <span class="text-xs font-bold text-rose-400 uppercase tracking-wider">Tổng Chi Tiêu</span>
           <div class="w-9 h-9 rounded-xl bg-rose-500/20 text-rose-300 flex items-center justify-center border border-rose-500/30">
@@ -366,37 +465,67 @@
           <div id="statTotalExpense" class="text-2xl sm:text-3xl font-black text-rose-400 tracking-tight">
             0 ₫
           </div>
-          <p id="statExpenseSubtitle" class="text-xs text-slate-400 mt-1">Sinh hoạt, chợ búa, điện nước...</p>
+          <p id="statExpenseSubtitle" class="text-xs text-slate-400 mt-1">Chỉ trừ vào ngân sách khả dụng</p>
         </div>
 
         <div class="flex items-center justify-between text-xs text-slate-300 pt-2 border-t border-white/5">
-          <span>Số lượt chi:</span>
-          <span id="statExpenseCount" class="font-bold text-white">0</span>
+          <span>Tỷ lệ đã tiêu dùng:</span>
+          <span id="statBudgetUsedPercent" class="font-bold text-rose-400">0%</span>
         </div>
       </div>
 
-      <!-- Card 4: Savings Rate / Net Cashflow -->
-      <div class="glass-card-interactive rounded-2xl p-5 flex flex-col justify-between h-48 border-t-2 border-indigo-500/80">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-bold text-indigo-300 uppercase tracking-wider">Tỷ Lệ Tích Lũy</span>
-          <div class="w-9 h-9 rounded-xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center border border-indigo-500/30">
-            <i class="fa-solid fa-piggy-bank text-sm"></i>
+    </div>
+
+    <!-- SMART SAVINGS BREAKDOWN BANNER (GIẢI PHÁP TÀI CHÍNH THÔNG MINH) -->
+    <div class="glass-panel rounded-2xl p-4 sm:p-5 border border-amber-500/30 bg-gradient-to-r from-amber-950/25 via-slate-900/90 to-indigo-950/30">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div class="space-y-1">
+          <div class="flex items-center space-x-2">
+            <span class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-300 flex items-center justify-center text-sm border border-amber-500/30">
+              <i class="fa-solid fa-shield-halved"></i>
+            </span>
+            <h4 class="font-bold text-sm sm:text-base text-white">Cơ Chế Tiết Kiệm & Quỹ Tích Lũy Độc Lập Thông Minh</h4>
+            <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Được bảo vệ an toàn</span>
           </div>
+          <p class="text-xs text-slate-300 max-w-3xl">
+            Tổng thu nhập tháng được <strong class="text-amber-300">trích riêng vào Quỹ Tiết Kiệm Tích Lũy cộng dồn qua các tháng</strong>. Chi tiêu hàng ngày chỉ trừ vào <strong class="text-teal-300">Số dư khả dụng thực tế</strong>, tuyệt đối không làm hao hụt quỹ tích lũy dài hạn!
+          </p>
         </div>
 
-        <div>
-          <div id="statSavingsRate" class="text-2xl sm:text-3xl font-black text-indigo-300 tracking-tight">
-            0%
-          </div>
-          <p id="statSavingsMessage" class="text-xs text-slate-400 mt-1">Dòng tiền thặng dư an toàn</p>
-        </div>
-
-        <div class="flex items-center justify-between text-xs text-slate-300 pt-2 border-t border-white/5">
-          <span>Dòng tiền ròng:</span>
-          <span id="statNetFlowLabel" class="font-bold text-white">0 ₫</span>
+        <div class="flex items-center space-x-2 shrink-0">
+          <button onclick="openAddSavingModal()" class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-slate-950 font-black text-xs transition shadow-lg shadow-amber-500/20 flex items-center space-x-1.5 cursor-pointer">
+            <i class="fa-solid fa-gem"></i>
+            <span>Trích Quỹ Tiết Kiệm</span>
+          </button>
+          <button onclick="openSavingsTargetModal()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs border border-white/10 transition cursor-pointer">
+            <i class="fa-solid fa-bullseye mr-1 text-amber-400"></i> Mục Tiêu
+          </button>
         </div>
       </div>
 
+      <!-- Live Calculation Flow Visualizer -->
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 mt-4 pt-3 border-t border-white/10 text-center">
+        <div class="bg-slate-900/60 p-2.5 rounded-xl border border-white/5">
+          <div class="text-[10px] text-slate-400 font-semibold">1. Tổng Thu Tháng</div>
+          <div id="flowIncome" class="text-xs sm:text-sm font-bold text-emerald-400 mt-0.5">0 ₫</div>
+        </div>
+        <div class="bg-slate-900/60 p-2.5 rounded-xl border border-amber-500/20">
+          <div class="text-[10px] text-amber-300 font-semibold">2. Trích Tiết Kiệm (-)</div>
+          <div id="flowSaving" class="text-xs sm:text-sm font-bold text-amber-300 mt-0.5">0 ₫</div>
+        </div>
+        <div class="bg-slate-900/60 p-2.5 rounded-xl border border-teal-500/20">
+          <div class="text-[10px] text-teal-300 font-semibold">3. Ngân Sách Khả Dụng (=)</div>
+          <div id="flowSpendable" class="text-xs sm:text-sm font-bold text-teal-300 mt-0.5">0 ₫</div>
+        </div>
+        <div class="bg-slate-900/60 p-2.5 rounded-xl border border-rose-500/20">
+          <div class="text-[10px] text-rose-300 font-semibold">4. Đã Chi Tiêu (-)</div>
+          <div id="flowExpense" class="text-xs sm:text-sm font-bold text-rose-400 mt-0.5">0 ₫</div>
+        </div>
+        <div class="col-span-2 sm:col-span-1 bg-indigo-950/40 p-2.5 rounded-xl border border-indigo-500/30">
+          <div class="text-[10px] text-indigo-300 font-semibold">5. Số Dư Khả Dụng Còn (=)</div>
+          <div id="flowRemaining" class="text-xs sm:text-sm font-black text-white mt-0.5">0 ₫</div>
+        </div>
+      </div>
     </div>
 
     <!-- ADMIN EXCLUSIVE: 5 FAMILY MEMBERS QUICK OVERVIEW -->
@@ -475,6 +604,130 @@
       </div>
     </div>
 
+    <!-- MULTI-DIMENSIONAL COMPARISON ANALYTICS SECTION (DoD, WoW, MoM, QoQ, YoY) -->
+    <div id="comparisonSection" class="glass-panel rounded-2xl p-4 sm:p-5 space-y-4 border border-indigo-500/20 bg-gradient-to-br from-slate-900/90 via-indigo-950/20 to-slate-950">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-white/10">
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="w-8 h-8 rounded-xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center border border-indigo-500/30">
+              <i class="fa-solid fa-chart-line text-sm"></i>
+            </span>
+            <h3 class="font-bold text-base sm:text-lg text-white">So Sánh Đa Chiều (Comparison Analytics)</h3>
+            <span class="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold">Tỷ lệ % trực quan</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">Đối chiếu biến động thu chi và tích lũy theo chu kỳ: Ngày, Tuần, Tháng, Quý, Năm</p>
+        </div>
+
+        <!-- 5 Comparison Period Tabs -->
+        <div class="flex items-center bg-slate-900/90 p-1 rounded-xl border border-white/10 overflow-x-auto no-scrollbar space-x-1">
+          <button onclick="setComparisonPeriod('dod')" id="btn-comp-dod" class="comp-tab px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition cursor-pointer whitespace-nowrap">
+            📅 DoD (Hôm nay)
+          </button>
+          <button onclick="setComparisonPeriod('wow')" id="btn-comp-wow" class="comp-tab px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition cursor-pointer whitespace-nowrap">
+            🗓️ WoW (Tuần)
+          </button>
+          <button onclick="setComparisonPeriod('mom')" id="btn-comp-mom" class="comp-tab active px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white shadow transition cursor-pointer whitespace-nowrap">
+            📊 MoM (T8 vs T7)
+          </button>
+          <button onclick="setComparisonPeriod('qoq')" id="btn-comp-qoq" class="comp-tab px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition cursor-pointer whitespace-nowrap">
+            📈 QoQ (Quý)
+          </button>
+          <button onclick="setComparisonPeriod('yoy')" id="btn-comp-yoy" class="comp-tab px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition cursor-pointer whitespace-nowrap">
+            🏆 YoY (Năm)
+          </button>
+        </div>
+      </div>
+
+      <!-- 4 Key Comparison Metric Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <!-- Metric 1: Income Comparison -->
+        <div class="bg-slate-900/80 p-4 rounded-xl border border-white/10 flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-300">Thu Nhập</span>
+            <span id="compIncomeBadge" class="text-[11px] font-black px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">+0%</span>
+          </div>
+          <div class="my-2">
+            <div id="compIncomeCurrent" class="text-xl font-black text-emerald-400">0 ₫</div>
+            <div class="text-[11px] text-slate-400 flex items-center justify-between mt-1">
+              <span>Kỳ so sánh:</span>
+              <span id="compIncomePrevious" class="font-bold text-slate-300">0 ₫</span>
+            </div>
+          </div>
+          <div id="compIncomeDelta" class="text-[10px] text-emerald-400 font-semibold pt-1.5 border-t border-white/5">
+            Tăng 0 ₫ so với kỳ trước
+          </div>
+        </div>
+
+        <!-- Metric 2: Expense Comparison -->
+        <div class="bg-slate-900/80 p-4 rounded-xl border border-white/10 flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-300">Chi Tiêu Thực Tế</span>
+            <span id="compExpenseBadge" class="text-[11px] font-black px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">-0%</span>
+          </div>
+          <div class="my-2">
+            <div id="compExpenseCurrent" class="text-xl font-black text-rose-400">0 ₫</div>
+            <div class="text-[11px] text-slate-400 flex items-center justify-between mt-1">
+              <span>Kỳ so sánh:</span>
+              <span id="compExpensePrevious" class="font-bold text-slate-300">0 ₫</span>
+            </div>
+          </div>
+          <div id="compExpenseDelta" class="text-[10px] text-emerald-400 font-semibold pt-1.5 border-t border-white/5">
+            Tiết kiệm hơn 0 ₫
+          </div>
+        </div>
+
+        <!-- Metric 3: Savings Allocation Comparison -->
+        <div class="bg-slate-900/80 p-4 rounded-xl border border-amber-500/20 flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-amber-300">Trích Quỹ Tiết Kiệm</span>
+            <span id="compSavingsBadge" class="text-[11px] font-black px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30">+0%</span>
+          </div>
+          <div class="my-2">
+            <div id="compSavingsCurrent" class="text-xl font-black text-amber-400">0 ₫</div>
+            <div class="text-[11px] text-slate-400 flex items-center justify-between mt-1">
+              <span>Kỳ so sánh:</span>
+              <span id="compSavingsPrevious" class="font-bold text-slate-300">0 ₫</span>
+            </div>
+          </div>
+          <div id="compSavingsDelta" class="text-[10px] text-amber-300 font-semibold pt-1.5 border-t border-white/5">
+            Tích lũy tăng 0 ₫
+          </div>
+        </div>
+
+        <!-- Metric 4: Net Spendable Balance Comparison -->
+        <div class="bg-slate-900/80 p-4 rounded-xl border border-teal-500/20 flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-teal-300">Số Dư Khả Dụng</span>
+            <span id="compBalanceBadge" class="text-[11px] font-black px-2 py-0.5 rounded-md bg-teal-500/20 text-teal-300 border border-teal-500/30">+0%</span>
+          </div>
+          <div class="my-2">
+            <div id="compBalanceCurrent" class="text-xl font-black text-white">0 ₫</div>
+            <div class="text-[11px] text-slate-400 flex items-center justify-between mt-1">
+              <span>Kỳ so sánh:</span>
+              <span id="compBalancePrevious" class="font-bold text-slate-300">0 ₫</span>
+            </div>
+          </div>
+          <div id="compBalanceDelta" class="text-[10px] text-teal-300 font-semibold pt-1.5 border-t border-white/5">
+            Thặng dư dồi dào
+          </div>
+        </div>
+      </div>
+
+      <!-- Comparison Grouped Bar Chart -->
+      <div class="pt-2">
+        <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+          <span>Biểu đồ đối chiếu trực quan hai kỳ:</span>
+          <div class="flex items-center space-x-3">
+            <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-sm bg-indigo-500 inline-block mr-1"></span> Kỳ Hiện Tại</span>
+            <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-sm bg-slate-500 inline-block mr-1"></span> Kỳ So Sánh</span>
+          </div>
+        </div>
+        <div class="relative h-60 sm:h-64 w-full">
+          <canvas id="comparisonChart"></canvas>
+        </div>
+      </div>
+    </div>
+
     <!-- TRANSACTIONS LIST & ACTION BAR -->
     <div class="glass-panel rounded-2xl p-5 space-y-4">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/10">
@@ -483,29 +736,78 @@
             <i class="fa-solid fa-clock-rotate-left text-indigo-400"></i>
             <span>Lịch Sử Giao Dịch Chi Tiết</span>
           </h3>
-          <p class="text-xs text-slate-400">Hỗ trợ tìm kiếm, phân loại và nhận danh mục tùy chỉnh</p>
+          <p class="text-xs text-slate-400">Lọc và sắp xếp thông minh theo danh mục, ngày, số tiền</p>
         </div>
 
-        <div class="flex items-center space-x-2">
+        <div class="flex items-center flex-wrap gap-2 w-full sm:w-auto">
           <!-- Search input -->
-          <div class="relative">
+          <div class="relative flex-1 sm:flex-initial min-w-[140px]">
             <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
-            <input type="text" id="txSearchInput" oninput="renderTransactionList()" placeholder="Tìm theo ghi chú, danh mục..." class="bg-slate-900/90 border border-white/15 text-xs text-white rounded-xl pl-8 pr-3 py-2 w-48 sm:w-64 focus:outline-none focus:border-indigo-400 transition placeholder:text-slate-500">
+            <input type="text" id="txSearchInput" oninput="renderTransactionList()" placeholder="Tìm theo ghi chú, danh mục..." class="w-full sm:w-52 bg-slate-900/90 border border-white/15 text-xs text-white rounded-xl pl-8 pr-3 py-2 focus:outline-none focus:border-indigo-400 transition placeholder:text-slate-500">
           </div>
 
-          <!-- Filter type: All, Expense, Income -->
-          <select id="txTypeFilter" onchange="renderTransactionList()" class="bg-slate-900/90 border border-white/15 text-xs text-white rounded-xl px-3 py-2 focus:outline-none focus:border-indigo-400 cursor-pointer">
+          <!-- Sort Order Selector (Core Requirement) -->
+          <select id="txSortSelector" onchange="onSortChange(this.value)" class="bg-slate-900/90 border border-white/15 text-xs text-indigo-300 font-semibold rounded-xl px-2.5 sm:px-3 py-2 focus:outline-none focus:border-indigo-400 cursor-pointer shrink-0">
+            <option value="newest">⚡ Mới nhất</option>
+            <option value="oldest">⏳ Cũ nhất</option>
+            <option value="highest">💰 Số tiền cao nhất</option>
+            <option value="lowest">📉 Số tiền thấp nhất</option>
+          </select>
+
+          <!-- Filter type: All, Expense, Income, Saving -->
+          <select id="txTypeFilter" onchange="renderTransactionList()" class="bg-slate-900/90 border border-white/15 text-xs text-white rounded-xl px-2.5 sm:px-3 py-2 focus:outline-none focus:border-indigo-400 cursor-pointer shrink-0">
             <option value="all">Tất cả loại</option>
             <option value="expense">🔴 Chỉ Chi Tiêu</option>
             <option value="income">🟢 Chỉ Thu Nhập</option>
+            <option value="saving">💎 Trích Tiết Kiệm</option>
           </select>
 
           <!-- Add Button -->
-          <button onclick="openAddTransactionModal()" class="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer shadow-lg shadow-indigo-600/30">
+          <button onclick="openAddTransactionModal()" class="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer shadow-lg shadow-indigo-600/30 shrink-0">
             <i class="fa-solid fa-plus"></i>
             <span class="hidden sm:inline">Ghi Chép</span>
           </button>
         </div>
+      </div>
+
+      <!-- DYNAMIC CATEGORY FILTER CHIPS CAROUSEL (CORE REQUIREMENT) -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-bold text-slate-300 flex items-center space-x-1.5">
+            <i class="fa-solid fa-filter text-indigo-400"></i>
+            <span>Lọc Nhanh Theo Danh Mục:</span>
+          </span>
+          <button onclick="clearCategoryFilter()" id="btnClearCatFilter" class="text-xs text-indigo-300 hover:text-white underline cursor-pointer hidden">
+            ✕ Xem tất cả danh mục
+          </button>
+        </div>
+        <div id="categoryFilterChipsBar" class="flex items-center space-x-2 overflow-x-auto no-scrollbar pb-2 pt-0.5">
+          <!-- Dynamic category chips with transaction count injected here -->
+        </div>
+      </div>
+
+      <!-- SELECTED CATEGORY HIGHLIGHT BANNER (Shows total spend & proportion of selected category) -->
+      <div id="selectedCategoryBanner" class="p-3.5 rounded-xl bg-gradient-to-r from-indigo-900/40 via-purple-900/30 to-slate-900 border border-indigo-500/30 hidden flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="flex items-center space-x-3">
+          <div id="catBannerIcon" class="w-10 h-10 rounded-xl bg-indigo-500/20 text-xl flex items-center justify-center border border-indigo-500/30">
+            🏷️
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="text-xs text-slate-400">Đang lọc danh mục:</span>
+              <span id="catBannerName" class="font-black text-sm text-white">Ăn uống ngoài</span>
+              <span id="catBannerCountBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300">2 khoản</span>
+            </div>
+            <div class="flex items-baseline space-x-2 mt-0.5">
+              <span class="text-xs text-slate-300">Tổng tiền:</span>
+              <span id="catBannerTotalAmount" class="text-base font-black text-amber-300">1.070.000 ₫</span>
+              <span id="catBannerSharePercent" class="text-xs text-slate-400">(chiếm 4.3% tổng chi tiêu)</span>
+            </div>
+          </div>
+        </div>
+        <button onclick="clearCategoryFilter()" class="self-end sm:self-center px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition cursor-pointer">
+          ✕ Bỏ lọc danh mục
+        </button>
       </div>
 
       <!-- Transaction Items Table / Cards Container -->
@@ -638,15 +940,19 @@
 
       <form id="transactionForm" onsubmit="handleSaveTransaction(event)" class="space-y-4">
         
-        <!-- Transaction Type Switch (Chi tiêu vs Thu nhập) -->
-        <div class="grid grid-cols-2 gap-2 bg-slate-900/90 p-1 rounded-xl border border-white/10">
-          <button type="button" onclick="setTxFormType('expense')" id="btnFormExpense" class="py-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-2 bg-rose-600 text-white shadow">
+        <!-- Transaction Type Switch (Chi tiêu vs Thu nhập vs Trích Tiết Kiệm) -->
+        <div class="grid grid-cols-3 gap-1.5 bg-slate-900/90 p-1 rounded-xl border border-white/10">
+          <button type="button" onclick="setTxFormType('expense')" id="btnFormExpense" class="py-2 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-1.5 bg-rose-600 text-white shadow">
             <i class="fa-solid fa-circle-minus"></i>
-            <span>Khoản Chi Tiêu</span>
+            <span>Chi Tiêu</span>
           </button>
-          <button type="button" onclick="setTxFormType('income')" id="btnFormIncome" class="py-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-2 text-slate-400 hover:text-white">
+          <button type="button" onclick="setTxFormType('income')" id="btnFormIncome" class="py-2 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-1.5 text-slate-400 hover:text-white">
             <i class="fa-solid fa-circle-plus"></i>
-            <span>Khoản Thu Nhập</span>
+            <span>Thu Nhập</span>
+          </button>
+          <button type="button" onclick="setTxFormType('saving')" id="btnFormSaving" class="py-2 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-1.5 text-slate-400 hover:text-amber-300">
+            <i class="fa-solid fa-vault"></i>
+            <span>Tiết Kiệm</span>
           </button>
         </div>
 
@@ -892,6 +1198,134 @@ CREATE POLICY "Allow public all" ON public.categories FOR ALL USING (true) WITH 
     </div>
   </div>
 
+  <!-- 5. ADD SAVING VAULT MODAL (TRÍCH QUỸ TIẾT KIỆM TÍCH LŨY) -->
+  <div id="addSavingModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="glass-panel w-full max-w-md rounded-3xl p-6 border border-amber-500/30 shadow-2xl relative animate-in fade-in zoom-in duration-200 bg-gradient-to-b from-slate-900 via-slate-900 to-amber-950/30">
+      <button onclick="closeAddSavingModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white text-lg w-8 h-8 rounded-full bg-white/5 flex items-center justify-center transition cursor-pointer">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="flex items-center space-x-3 mb-4">
+        <div class="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center justify-center text-2xl shadow-lg shadow-amber-500/30">
+          💎
+        </div>
+        <div>
+          <h3 class="text-lg font-black text-white">Trích Quỹ Tiết Kiệm Tích Lũy</h3>
+          <p class="text-xs text-amber-300/80">Tách riêng độc lập khỏi ngân sách chi tiêu</p>
+        </div>
+      </div>
+
+      <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-slate-300 mb-4 space-y-1">
+        <div class="font-bold text-amber-300 flex items-center space-x-1.5">
+          <i class="fa-solid fa-shield-halved"></i>
+          <span>Nguyên Tắc Bảo Vệ Tích Lũy:</span>
+        </div>
+        <p>
+          Khoản tiền này sẽ được chuyển thẳng vào <strong>Két Sắt Tích Lũy Cộng Dồn</strong>. Số dư khả dụng chi tiêu tháng này sẽ tự động giảm đi một lượng tương ứng để đảm bảo kỷ luật tài chính!
+        </p>
+      </div>
+
+      <form id="savingVaultForm" onsubmit="handleSaveVaultDeposit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Thành viên trích tiết kiệm:</label>
+          <select id="savingVaultMember" class="w-full bg-slate-900 border border-white/15 text-xs text-white rounded-xl px-3 py-2.5 focus:outline-none focus:border-amber-400 cursor-pointer">
+            <option value="admin">👑 Tôi (Admin)</option>
+            <option value="ba">👔 Ba</option>
+            <option value="me">🧺 Mẹ</option>
+            <option value="chi">💼 Chị</option>
+            <option value="vo">🌸 Vợ</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Số tiền trích tiết kiệm (VNĐ):</label>
+          <div class="relative">
+            <input type="number" id="savingVaultAmount" required min="10000" step="10000" placeholder="VD: 5000000" class="w-full bg-slate-900 border border-amber-500/30 text-lg font-black text-amber-300 rounded-xl pl-4 pr-12 py-2.5 focus:outline-none focus:border-amber-400 placeholder:text-slate-600">
+            <span class="absolute right-4 top-3 text-xs font-bold text-amber-400">VNĐ</span>
+          </div>
+          <div class="flex items-center space-x-1.5 mt-2 overflow-x-auto pb-1">
+            <button type="button" onclick="setSavingAmountPreset(1000000)" class="px-2 py-1 text-[11px] rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/20 whitespace-nowrap cursor-pointer">1 Tr</button>
+            <button type="button" onclick="setSavingAmountPreset(3000000)" class="px-2 py-1 text-[11px] rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/20 whitespace-nowrap cursor-pointer">3 Tr</button>
+            <button type="button" onclick="setSavingAmountPreset(5000000)" class="px-2 py-1 text-[11px] rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/20 whitespace-nowrap cursor-pointer">5 Tr</button>
+            <button type="button" onclick="setSavingAmountPreset(10000000)" class="px-2 py-1 text-[11px] rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/20 whitespace-nowrap cursor-pointer">10 Tr</button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Mục tiêu trích lập / Ghi chú:</label>
+          <input type="text" id="savingVaultNote" placeholder="VD: Trích lương tháng 8 gửi sổ tiết kiệm, mua vàng..." class="w-full bg-slate-900 border border-white/15 text-xs text-white rounded-xl px-3 py-2.5 focus:outline-none focus:border-amber-400 placeholder:text-slate-600">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Ngày trích:</label>
+          <input type="date" id="savingVaultDate" value="2026-08-15" class="w-full bg-slate-900 border border-white/15 text-xs text-white rounded-xl px-3 py-2.5 focus:outline-none focus:border-amber-400">
+        </div>
+
+        <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-slate-950 font-black text-sm transition shadow-lg shadow-amber-500/30 cursor-pointer flex items-center justify-center space-x-2">
+          <i class="fa-solid fa-vault"></i>
+          <span>Xác Nhận Đưa Vào Quỹ Tích Lũy</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 6. SAVINGS TARGET & BASE MODAL -->
+  <div id="savingsTargetModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="glass-panel w-full max-w-md rounded-3xl p-6 border border-white/20 shadow-2xl relative animate-in fade-in zoom-in duration-200">
+      <button onclick="closeSavingsTargetModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white text-lg w-8 h-8 rounded-full bg-white/5 flex items-center justify-center transition cursor-pointer">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <h3 class="text-lg font-black text-white flex items-center space-x-2 mb-2">
+        <i class="fa-solid fa-bullseye text-amber-400"></i>
+        <span>Cấu Hình Quỹ Tích Lũy Gia Đình</span>
+      </h3>
+      <p class="text-xs text-slate-400 mb-4">Điều chỉnh số dư tích lũy cộng dồn ban đầu và mục tiêu tài chính dài hạn</p>
+
+      <form onsubmit="handleSaveSavingsConfig(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Số dư cộng dồn tích lũy trước đó (VNĐ):</label>
+          <input type="number" id="inputCumulativeBase" name="inputCumulativeSavingsBase" value="120000000" min="0" step="1000000" class="w-full bg-slate-900 border border-white/15 text-sm font-bold text-amber-300 rounded-xl px-3 py-2.5 focus:outline-none focus:border-amber-400">
+          <p class="text-[10px] text-slate-400 mt-1">Là tổng số tiền đã tích lũy từ các tháng và năm trước chuyển sang</p>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Mục tiêu tài chính tích lũy (VNĐ):</label>
+          <input type="number" id="inputSavingsGoal" name="inputSavingsTargetGoal" value="200000000" min="1000000" step="10000000" class="w-full bg-slate-900 border border-white/15 text-sm font-bold text-emerald-400 rounded-xl px-3 py-2.5 focus:outline-none focus:border-emerald-400">
+          <p class="text-[10px] text-slate-400 mt-1">Mục tiêu quỹ dự phòng, mua nhà, xe hoặc đầu tư</p>
+        </div>
+
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition shadow-lg shadow-indigo-600/30 cursor-pointer">
+          Lưu Cấu Hình
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MOBILE BOTTOM DOCK NAVIGATION (Tối ưu trải nghiệm sử dụng 1 tay trên điện thoại di động) -->
+  <div id="mobileBottomDock" class="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur-2xl border-t border-white/10 px-3 py-2 flex items-center justify-around shadow-2xl safe-area-pb">
+    <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="flex flex-col items-center justify-center p-1 text-slate-400 hover:text-indigo-400 transition cursor-pointer">
+      <i class="fa-solid fa-house text-base"></i>
+      <span class="text-[10px] font-semibold mt-0.5">Tổng quan</span>
+    </button>
+    <button onclick="openAddSavingModal()" class="flex flex-col items-center justify-center p-1 text-slate-400 hover:text-amber-400 transition cursor-pointer">
+      <i class="fa-solid fa-vault text-base text-amber-400"></i>
+      <span class="text-[10px] font-semibold mt-0.5 text-amber-300">Tiết kiệm</span>
+    </button>
+    <!-- Center Prominent Floating Action Button -->
+    <button onclick="openAddTransactionModal()" class="-mt-5 w-12 h-12 rounded-full bg-gradient-to-tr from-indigo-500 via-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-500/50 border-2 border-slate-950 active:scale-95 transition cursor-pointer">
+      <i class="fa-solid fa-plus text-lg"></i>
+    </button>
+    <button onclick="document.getElementById('comparisonSection')?.scrollIntoView({behavior: 'smooth'})" class="flex flex-col items-center justify-center p-1 text-slate-400 hover:text-indigo-400 transition cursor-pointer">
+      <i class="fa-solid fa-chart-line text-base text-indigo-400"></i>
+      <span class="text-[10px] font-semibold mt-0.5">Đối chiếu</span>
+    </button>
+    <button onclick="showMemberLoginModal()" class="flex flex-col items-center justify-center p-1 text-slate-400 hover:text-white transition cursor-pointer">
+      <span id="mobileDockAvatar" class="text-base leading-none">👑</span>
+      <span class="text-[10px] font-semibold mt-0.5">Đổi ví</span>
+    </button>
+  </div>
+
   <!-- JAVASCRIPT LOGIC & SUPABASE INTEGRATION -->
   <script>
     // --- 1. CONSTANTS & INITIAL DATA ---
@@ -918,26 +1352,91 @@ CREATE POLICY "Allow public all" ON public.categories FOR ALL USING (true) WITH 
       { id: 'cat-12', name: 'Đầu tư & Cổ tức', type: 'income', icon: '💎', isCustom: false },
       { id: 'cat-13', name: 'Tiền biếu / Tặng', type: 'income', icon: '🧧', isCustom: false },
       { id: 'cat-14', name: 'Thu nhập khác', type: 'income', icon: '💵', isCustom: false },
+      { id: 'cat-15', name: 'Trích Quỹ Tiết Kiệm Tích Lũy', type: 'saving', icon: '💎', isCustom: false },
     ];
 
     const SEED_TRANSACTIONS = [
-      { id: 'tx-1', member: 'admin', type: 'income', amount: 32000000, category: 'Lương & Phụ cấp', note: 'Lương tháng 9 chuyển vào Techcombank', date: '2026-09-05' },
-      { id: 'tx-2', member: 'admin', type: 'expense', amount: 2450000, category: 'Điện nước & Internet', note: 'Hóa đơn tiền điện EVN + Internet Viettel', date: '2026-09-07' },
-      { id: 'tx-3', member: 'me', type: 'expense', amount: 6800000, category: 'Đi chợ & Thực phẩm', note: 'Tiền chợ 2 tuần & mua đồ tẩm bổ cả nhà', date: '2026-09-10' },
-      { id: 'tx-4', member: 'ba', type: 'income', amount: 15000000, category: 'Lương & Phụ cấp', note: 'Lương hưu & thu nhập tư vấn ngoài', date: '2026-09-01' },
-      { id: 'tx-5', member: 'ba', type: 'expense', amount: 1200000, category: 'Y tế & Sức khỏe', note: 'Khám định kỳ & mua thuốc bổ huyết áp', date: '2026-09-12' },
-      { id: 'tx-6', member: 'vo', type: 'income', amount: 22000000, category: 'Lương & Phụ cấp', note: 'Lương công ty', date: '2026-09-05' },
-      { id: 'tx-7', member: 'vo', type: 'expense', amount: 3500000, category: 'Mua sắm gia đình', note: 'Mua sữa tã em bé và đồ dùng phòng khách', date: '2026-09-14' },
-      { id: 'tx-8', member: 'chi', type: 'income', amount: 18000000, category: 'Lương & Phụ cấp', note: 'Lương nhân viên truyền thông', date: '2026-09-05' },
-      { id: 'tx-9', member: 'chi', type: 'expense', amount: 2100000, category: 'Giáo dục & Học phí', note: 'Đăng ký khóa học tiếng Nhật nâng cao', date: '2026-09-16' },
-      { id: 'tx-10', member: 'admin', type: 'expense', amount: 850000, category: 'Ăn uống ngoài', note: 'Cả nhà đi ăn lẩu cuối tuần vui vẻ', date: '2026-09-18' },
+      // === THÁNG 08/2026 (DỮ LIỆU CHÍNH HIỆN TẠI) ===
+      // Admin
+      { id: 'tx-1', member: 'admin', type: 'income', amount: 35000000, category: 'Lương & Phụ cấp', note: 'Lương tháng 08 Techcombank', date: '2026-08-05' },
+      { id: 'tx-2', member: 'admin', type: 'saving', amount: 12000000, category: 'Trích Quỹ Tiết Kiệm Tích Lũy', note: 'Trích vào Quỹ Tích Lũy Dài Hạn (Tách riêng khỏi chi tiêu)', date: '2026-08-05' },
+      { id: 'tx-3', member: 'admin', type: 'expense', amount: 2450000, category: 'Điện nước & Internet', note: 'Hóa đơn tiền điện EVN + Internet Viettel T8', date: '2026-08-07' },
+      { id: 'tx-4', member: 'admin', type: 'expense', amount: 850000, category: 'Ăn uống ngoài', note: 'Cả nhà đi ăn lẩu mừng đầu tháng', date: '2026-08-20' },
+      { id: 'tx-5', member: 'admin', type: 'expense', amount: 600000, category: 'Di chuyển & Xăng xe', note: 'Đổ xăng ô tô & bảo dưỡng nhẹ', date: '2026-08-25' },
+      { id: 'tx-6', member: 'admin', type: 'income', amount: 5000000, category: 'Thưởng & Hoa hồng', note: 'Thưởng dự án hoàn thành xuất sắc', date: '2026-08-29' },
+      { id: 'tx-7', member: 'admin', type: 'expense', amount: 150000, category: 'Ăn uống ngoài', note: 'Cà phê sáng họp đối tác', date: '2026-08-30' },
+      { id: 'tx-8', member: 'admin', type: 'expense', amount: 220000, category: 'Ăn uống ngoài', note: 'Cơm trưa văn phòng', date: '2026-08-31' },
+
+      // Ba
+      { id: 'tx-9', member: 'ba', type: 'income', amount: 15000000, category: 'Lương & Phụ cấp', note: 'Lương hưu & thu nhập tư vấn tháng 08', date: '2026-08-01' },
+      { id: 'tx-10', member: 'ba', type: 'saving', amount: 5000000, category: 'Trích Quỹ Tiết Kiệm Tích Lũy', note: 'Trích quỹ hưu trí & tiết kiệm an dưỡng', date: '2026-08-02' },
+      { id: 'tx-11', member: 'ba', type: 'expense', amount: 1200000, category: 'Y tế & Sức khỏe', note: 'Khám tim mạch định kỳ & thuốc huyết áp T8', date: '2026-08-12' },
+      { id: 'tx-12', member: 'ba', type: 'expense', amount: 950000, category: 'Di chuyển & Xăng xe', note: 'Bảo dưỡng xe máy định kỳ', date: '2026-08-22' },
+
+      // Mẹ
+      { id: 'tx-13', member: 'me', type: 'expense', amount: 6800000, category: 'Đi chợ & Thực phẩm', note: 'Tiền chợ 2 tuần & đồ tươi sống cả nhà', date: '2026-08-10' },
+      { id: 'tx-14', member: 'me', type: 'expense', amount: 2200000, category: 'Mua sắm gia đình', note: 'Mua nồi cơm điện mới và đồ dùng bếp', date: '2026-08-18' },
+      { id: 'tx-15', member: 'me', type: 'expense', amount: 3500000, category: 'Đi chợ & Thực phẩm', note: 'Tiền chợ đợt 2 cuối tháng', date: '2026-08-26' },
+
+      // Vợ
+      { id: 'tx-16', member: 'vo', type: 'income', amount: 22000000, category: 'Lương & Phụ cấp', note: 'Lương tháng 08 công ty', date: '2026-08-05' },
+      { id: 'tx-17', member: 'vo', type: 'saving', amount: 8000000, category: 'Trích Quỹ Tiết Kiệm Tích Lũy', note: 'Trích tiết kiệm mua nhà & tương lai em bé', date: '2026-08-06' },
+      { id: 'tx-18', member: 'vo', type: 'expense', amount: 3500000, category: 'Mua sắm gia đình', note: 'Sữa bỉm và đồ sơ sinh cho con', date: '2026-08-14' },
+      { id: 'tx-19', member: 'vo', type: 'expense', amount: 1450000, category: 'Mua sắm gia đình', note: 'Quần áo ấm và đồ chơi phát triển trí tuệ', date: '2026-08-28' },
+
+      // Chị
+      { id: 'tx-20', member: 'chi', type: 'income', amount: 18000000, category: 'Lương & Phụ cấp', note: 'Lương nhân viên truyền thông T8', date: '2026-08-05' },
+      { id: 'tx-21', member: 'chi', type: 'saving', amount: 6000000, category: 'Trích Quỹ Tiết Kiệm Tích Lũy', note: 'Trích quỹ du học / học cao học', date: '2026-08-06' },
+      { id: 'tx-22', member: 'chi', type: 'expense', amount: 2100000, category: 'Giáo dục & Học phí', note: 'Khóa học chứng chỉ Digital Marketing', date: '2026-08-16' },
+      { id: 'tx-23', member: 'chi', type: 'expense', amount: 750000, category: 'Ăn uống ngoài', note: 'Họp nhóm và cà phê làm việc', date: '2026-08-26' },
+
+      // === DỮ LIỆU THÁNG 07/2026 (ĐỂ SO SÁNH THÁNG-QUA-THÁNG MoM) ===
+      { id: 'tx-prev-1', member: 'admin', type: 'income', amount: 32000000, category: 'Lương & Phụ cấp', note: 'Lương T7', date: '2026-07-05' },
+      { id: 'tx-prev-2', member: 'admin', type: 'saving', amount: 10000000, category: 'Trích Quỹ Tiết Kiệm Tích Lũy', note: 'Trích tiết kiệm T7', date: '2026-07-05' },
+      { id: 'tx-prev-3', member: 'admin', type: 'expense', amount: 2600000, category: 'Điện nước & Internet', note: 'Tiền điện nước T7', date: '2026-07-08' },
+      { id: 'tx-prev-4', member: 'ba', type: 'income', amount: 15000000, category: 'Lương & Phụ cấp', note: 'Lương T7', date: '2026-07-01' },
+      { id: 'tx-prev-5', member: 'ba', type: 'saving', amount: 4000000, category: 'Trích Quỹ Tiết Kiệm Tích Lũy', note: 'Tiết kiệm hưu T7', date: '2026-07-02' },
+      { id: 'tx-prev-6', member: 'ba', type: 'expense', amount: 1500000, category: 'Y tế & Sức khỏe', note: 'Thuốc T7', date: '2026-07-12' },
+      { id: 'tx-prev-7', member: 'me', type: 'expense', amount: 9800000, category: 'Đi chợ & Thực phẩm', note: 'Chợ búa T7', date: '2026-07-15' },
+      { id: 'tx-prev-8', member: 'vo', type: 'income', amount: 22000000, category: 'Lương & Phụ cấp', note: 'Lương T7', date: '2026-07-05' },
+      { id: 'tx-prev-9', member: 'vo', type: 'saving', amount: 7000000, category: 'Trích Quỹ Tiết Kiệm Tích Lũy', note: 'Tiết kiệm T7', date: '2026-07-06' },
+      { id: 'tx-prev-10', member: 'vo', type: 'expense', amount: 4600000, category: 'Mua sắm gia đình', note: 'Mua sắm T7', date: '2026-07-19' },
+      { id: 'tx-prev-11', member: 'chi', type: 'income', amount: 18000000, category: 'Lương & Phụ cấp', note: 'Lương T7', date: '2026-07-05' },
+      { id: 'tx-prev-12', member: 'chi', type: 'saving', amount: 5000000, category: 'Trích Quỹ Tiết Kiệm Tích Lũy', note: 'Tiết kiệm T7', date: '2026-07-06' },
+      { id: 'tx-prev-13', member: 'chi', type: 'expense', amount: 2900000, category: 'Giáo dục & Học phí', note: 'Học phí T7', date: '2026-07-22' },
+
+      // === DỮ LIỆU CÙNG KỲ NĂM TRƯỚC (THÁNG 08/2025 - SO SÁNH NĂM-QUA-NĂM YoY) ===
+      { id: 'tx-yoy-1', member: 'admin', type: 'income', amount: 28000000, category: 'Lương & Phụ cấp', note: 'Lương T8/2025', date: '2025-08-05' },
+      { id: 'tx-yoy-2', member: 'admin', type: 'saving', amount: 8000000, category: 'Trích Quỹ Tiết Kiệm Tích Lũy', note: 'Tiết kiệm T8/2025', date: '2025-08-05' },
+      { id: 'tx-yoy-3', member: 'admin', type: 'expense', amount: 2200000, category: 'Điện nước & Internet', note: 'Điện nước T8/2025', date: '2025-08-08' },
+      { id: 'tx-yoy-4', member: 'ba', type: 'income', amount: 14000000, category: 'Lương & Phụ cấp', note: 'Lương ba T8/2025', date: '2025-08-01' },
+      { id: 'tx-yoy-5', member: 'ba', type: 'saving', amount: 4000000, category: 'Trích Quỹ Tiết Kiệm Tích Lũy', note: 'Tiết kiệm ba T8/2025', date: '2025-08-02' },
+      { id: 'tx-yoy-6', member: 'me', type: 'expense', amount: 8200000, category: 'Đi chợ & Thực phẩm', note: 'Chợ T8/2025', date: '2025-08-15' },
+      { id: 'tx-yoy-7', member: 'vo', type: 'income', amount: 20000000, category: 'Lương & Phụ cấp', note: 'Lương vợ T8/2025', date: '2025-08-05' },
+      { id: 'tx-yoy-8', member: 'vo', type: 'saving', amount: 6000000, category: 'Trích Quỹ Tiết Kiệm Tích Lũy', note: 'Tiết kiệm vợ T8/2025', date: '2025-08-06' },
+      { id: 'tx-yoy-9', member: 'vo', type: 'expense', amount: 4100000, category: 'Mua sắm gia đình', note: 'Mua sắm T8/2025', date: '2025-08-18' },
+      { id: 'tx-yoy-10', member: 'chi', type: 'income', amount: 15000000, category: 'Lương & Phụ cấp', note: 'Lương chị T8/2025', date: '2025-08-05' },
+      { id: 'tx-yoy-11', member: 'chi', type: 'expense', amount: 3200000, category: 'Giáo dục & Học phí', note: 'Học phí T8/2025', date: '2025-08-20' },
+
+      // === DỮ LIỆU QUÝ 2/2026 (THÁNG 05 & 06/2026 - SO SÁNH QUÝ-QUA-QUÝ QoQ) ===
+      { id: 'tx-q2-1', member: 'admin', type: 'income', amount: 33000000, category: 'Lương & Phụ cấp', note: 'Lương T5/2026', date: '2026-05-05' },
+      { id: 'tx-q2-2', member: 'admin', type: 'saving', amount: 11000000, category: 'Trích Quỹ Tiết Kiệm Tích Lũy', note: 'Tiết kiệm T5/2026', date: '2026-05-05' },
+      { id: 'tx-q2-3', member: 'me', type: 'expense', amount: 8900000, category: 'Đi chợ & Thực phẩm', note: 'Chợ T5/2026', date: '2026-05-15' },
+      { id: 'tx-q2-4', member: 'vo', type: 'income', amount: 22000000, category: 'Lương & Phụ cấp', note: 'Lương T6/2026', date: '2026-06-05' },
+      { id: 'tx-q2-5', member: 'vo', type: 'saving', amount: 8000000, category: 'Trích Quỹ Tiết Kiệm Tích Lũy', note: 'Tiết kiệm T6/2026', date: '2026-06-06' },
+      { id: 'tx-q2-6', member: 'chi', type: 'expense', amount: 4500000, category: 'Giáo dục & Học phí', note: 'Học phí Q2', date: '2026-06-18' },
     ];
 
     // --- 2. APPLICATION STATE ---
     let activeMemberId = 'admin'; // 'admin', 'ba', 'me', 'chi', 'vo'
     let adminFilterTarget = 'all'; // 'all', or specific member id
     let timeFilterMode = 'monthly'; // 'daily', 'weekly', 'monthly', 'quarterly', 'all'
-    let currentAnchorDate = new Date('2026-09-18'); // Reference anchor date
+    let currentAnchorDate = new Date('2026-08-31'); // Current reference anchor date: 31/08/2026
+    let selectedCategoryFilter = 'all'; // Filter by specific category
+    let selectedSortOrder = 'newest'; // 'newest', 'oldest', 'highest', 'lowest'
+    let comparisonPeriod = 'mom'; // 'dod', 'wow', 'mom', 'qoq', 'yoy'
+    let cumulativeSavingsBase = Number(localStorage.getItem('family_savings_base')) || 120000000; // Số dư tích lũy cộng dồn từ các tháng trước
+    let savingsTargetGoal = Number(localStorage.getItem('family_savings_goal')) || 200000000; // Mục tiêu quỹ tích lũy (200.000.000đ)
     let transactions = [];
     let categories = [];
     let supabaseClient = null;
@@ -947,6 +1446,7 @@ CREATE POLICY "Allow public all" ON public.categories FOR ALL USING (true) WITH 
     // Chart instances
     let cashflowChartInstance = null;
     let categoryChartInstance = null;
+    let comparisonChartInstance = null;
     let memberComparisonChartInstance = null;
 
     // --- 3. HELPER FUNCTIONS ---
@@ -1182,6 +1682,10 @@ CREATE POLICY "Allow public all" ON public.categories FOR ALL USING (true) WITH 
       document.getElementById('navMemberName').innerText = member.name;
       document.getElementById('navMemberRole').innerText = member.role === 'admin' ? 'Quản trị toàn gia đình' : 'Thành viên gia đình';
 
+      if (document.getElementById('mobileDockAvatar')) {
+        document.getElementById('mobileDockAvatar').innerText = member.avatar;
+      }
+
       const banner = document.getElementById('roleBanner');
       const bannerIcon = document.getElementById('roleBannerIcon');
       const bannerTitle = document.getElementById('roleBannerTitle');
@@ -1332,19 +1836,27 @@ CREATE POLICY "Allow public all" ON public.categories FOR ALL USING (true) WITH 
     // --- 9. DASHBOARD REFRESH & CHARTS ---
     function refreshDashboard() {
       const range = getPeriodRange();
-      document.getElementById('periodDisplayLabel').innerText = range.label;
+      const periodLabelEl = document.getElementById('periodDisplayLabel');
+      if (periodLabelEl) periodLabelEl.innerText = range.label;
 
       const filtered = getFilteredTransactions();
 
-      // Calculate totals
+      // Separate Income, Expense, and Savings Vault
       let totalIncome = 0;
       let totalExpense = 0;
+      let monthlySavings = 0;
       let incomeCount = 0;
       let expenseCount = 0;
+      let savingsCount = 0;
 
       filtered.forEach(t => {
         const amt = Number(t.amount) || 0;
-        if (t.type === 'income') {
+        const isSavingTx = t.type === 'saving' || t.category === 'Trích Quỹ Tiết Kiệm Tích Lũy';
+
+        if (isSavingTx) {
+          monthlySavings += amt;
+          savingsCount++;
+        } else if (t.type === 'income') {
           totalIncome += amt;
           incomeCount++;
         } else {
@@ -1353,24 +1865,74 @@ CREATE POLICY "Allow public all" ON public.categories FOR ALL USING (true) WITH 
         }
       });
 
-      const netBalance = totalIncome - totalExpense;
-      const savingsRate = totalIncome > 0 ? Math.max(0, Math.round((netBalance / totalIncome) * 100)) : 0;
+      // CORE LOGIC QUẢN LÝ TIẾT KIỆM THÔNG MINH:
+      // 1. Ngân sách khả dụng thực tế của tháng = Tổng thu nhập - Trích quỹ tiết kiệm
+      const spendableBudget = Math.max(0, totalIncome - monthlySavings);
+      // 2. Chi tiêu chỉ trừ vào số dư khả dụng thực tế -> Số dư vận hành còn lại
+      const remainingOperatingBudget = spendableBudget - totalExpense;
 
-      // Update stat cards
-      document.getElementById('statNetBalance').innerText = formatVND(netBalance);
-      document.getElementById('statTotalIncome').innerText = formatVND(totalIncome);
-      document.getElementById('statTotalExpense').innerText = formatVND(totalExpense);
-      document.getElementById('statIncomeCount').innerText = `${incomeCount} khoản`;
-      document.getElementById('statExpenseCount').innerText = `${expenseCount} khoản`;
-      document.getElementById('statSavingsRate').innerText = `${savingsRate}%`;
-      document.getElementById('statNetFlowLabel').innerText = formatVND(netBalance);
+      // 3. Quỹ tích lũy cộng dồn độc lập toàn thời gian
+      let allTimeSavings = 0;
+      transactions.forEach(t => {
+        const isSavingTx = t.type === 'saving' || t.category === 'Trích Quỹ Tiết Kiệm Tích Lũy';
+        if (isSavingTx) {
+          if (activeMemberId === 'admin') {
+            if (adminFilterTarget === 'all' || t.member === adminFilterTarget) {
+              allTimeSavings += Number(t.amount) || 0;
+            }
+          } else {
+            if (t.member === activeMemberId) {
+              allTimeSavings += Number(t.amount) || 0;
+            }
+          }
+        }
+      });
+      const cumulativeSavingsTotal = cumulativeSavingsBase + allTimeSavings;
 
-      // Card holder display
+      // Cập nhật các thẻ 3D Hero Cards & Thống kê
+      if (document.getElementById('statNetBalance')) document.getElementById('statNetBalance').innerText = formatVND(remainingOperatingBudget);
+      if (document.getElementById('statTotalIncome')) document.getElementById('statTotalIncome').innerText = formatVND(totalIncome);
+      if (document.getElementById('statTotalExpense')) document.getElementById('statTotalExpense').innerText = formatVND(totalExpense);
+      if (document.getElementById('statMonthlySavings')) document.getElementById('statMonthlySavings').innerText = formatVND(monthlySavings);
+      if (document.getElementById('statCumulativeSavingsLabel')) document.getElementById('statCumulativeSavingsLabel').innerText = formatVND(cumulativeSavingsTotal);
+      if (document.getElementById('statSpendableBudget')) document.getElementById('statSpendableBudget').innerText = formatVND(spendableBudget);
+      if (document.getElementById('statRemainingOperatingBudget')) document.getElementById('statRemainingOperatingBudget').innerText = formatVND(remainingOperatingBudget);
+
+      // Cập nhật thanh tính toán dòng tiền minh bạch
+      if (document.getElementById('flowIncome')) document.getElementById('flowIncome').innerText = formatVND(totalIncome);
+      if (document.getElementById('flowSaving')) document.getElementById('flowSaving').innerText = formatVND(monthlySavings);
+      if (document.getElementById('flowSpendable')) document.getElementById('flowSpendable').innerText = formatVND(spendableBudget);
+      if (document.getElementById('flowExpense')) document.getElementById('flowExpense').innerText = formatVND(totalExpense);
+      if (document.getElementById('flowRemaining')) document.getElementById('flowRemaining').innerText = formatVND(remainingOperatingBudget);
+
+      // Số lượng & Tỷ lệ
+      if (document.getElementById('statIncomeCount')) document.getElementById('statIncomeCount').innerText = `${incomeCount} khoản`;
+      if (document.getElementById('statExpenseCount')) document.getElementById('statExpenseCount').innerText = `${expenseCount} khoản`;
+
+      const savingsRate = totalIncome > 0 ? Math.max(0, Math.round((monthlySavings / totalIncome) * 100)) : 0;
+      if (document.getElementById('statSavingsRate')) document.getElementById('statSavingsRate').innerText = `${savingsRate}%`;
+      if (document.getElementById('statNetFlowLabel')) document.getElementById('statNetFlowLabel').innerText = formatVND(remainingOperatingBudget);
+
+      // Tiến độ mục tiêu tích lũy
+      const progressPercent = Math.min(100, Math.round((cumulativeSavingsTotal / savingsTargetGoal) * 100));
+      if (document.getElementById('statSavingsGoalProgress')) {
+        document.getElementById('statSavingsGoalProgress').innerText = `${progressPercent}% (Mục tiêu ${Math.round(savingsTargetGoal / 1000000)}Tr)`;
+      }
+
+      // Tỷ lệ sử dụng ngân sách vận hành
+      const budgetUsedPercent = spendableBudget > 0 ? Math.min(100, Math.round((totalExpense / spendableBudget) * 100)) : (totalExpense > 0 ? 100 : 0);
+      if (document.getElementById('statBudgetUsedPercent')) {
+        document.getElementById('statBudgetUsedPercent').innerText = `Đã dùng ${budgetUsedPercent}% ngân sách`;
+      }
+
+      // Tên chủ ví
       const isAdmin = MEMBERS[activeMemberId].role === 'admin';
-      if (!isAdmin) {
-        document.getElementById('cardHolderName').innerText = MEMBERS[activeMemberId].name.toUpperCase();
-      } else {
-        document.getElementById('cardHolderName').innerText = adminFilterTarget === 'all' ? 'TỔNG GIA ĐÌNH' : MEMBERS[adminFilterTarget].name.toUpperCase();
+      if (document.getElementById('cardHolderName')) {
+        if (!isAdmin) {
+          document.getElementById('cardHolderName').innerText = MEMBERS[activeMemberId].name.toUpperCase();
+        } else {
+          document.getElementById('cardHolderName').innerText = adminFilterTarget === 'all' ? 'TỔNG GIA ĐÌNH' : MEMBERS[adminFilterTarget].name.toUpperCase();
+        }
       }
 
       // Render Admin Member breakdown cards
@@ -1385,17 +1947,23 @@ CREATE POLICY "Allow public all" ON public.categories FOR ALL USING (true) WITH 
         renderMemberComparisonChart();
       }
 
-      // Render transaction history list
+      // Render Multi-Dimensional Comparison Analytics
+      renderComparisonAnalytics();
+
+      // Render Category Filter Chips Bar
+      renderCategoryFilterChips(filtered);
+
+      // Render Transaction History List
       renderTransactionList();
     }
 
     function renderAdminMemberBreakdown() {
       const container = document.getElementById('memberCardsContainer');
+      if (!container) return;
       const allMembers = ['admin', 'ba', 'me', 'chi', 'vo'];
 
       container.innerHTML = allMembers.map(mId => {
         const m = MEMBERS[mId];
-        // Calculate member specific stats for current filtered time
         const range = getPeriodRange();
         const memberTx = transactions.filter(t => {
           if (timeFilterMode !== 'all') {
@@ -1405,8 +1973,10 @@ CREATE POLICY "Allow public all" ON public.categories FOR ALL USING (true) WITH 
         });
 
         const inc = memberTx.filter(t => t.type === 'income').reduce((acc, t) => acc + Number(t.amount), 0);
-        const exp = memberTx.filter(t => t.type === 'expense').reduce((acc, t) => acc + Number(t.amount), 0);
-        const bal = inc - exp;
+        const sav = memberTx.filter(t => t.type === 'saving' || t.category === 'Trích Quỹ Tiết Kiệm Tích Lũy').reduce((acc, t) => acc + Number(t.amount), 0);
+        const exp = memberTx.filter(t => t.type === 'expense' && t.category !== 'Trích Quỹ Tiết Kiệm Tích Lũy').reduce((acc, t) => acc + Number(t.amount), 0);
+        const spendable = Math.max(0, inc - sav);
+        const remaining = spendable - exp;
 
         return `
           <div onclick="filterByMemberFromCard('${mId}')" class="glass-card-interactive p-3.5 rounded-xl border border-white/10 hover:border-amber-400 cursor-pointer transition">
@@ -1423,12 +1993,16 @@ CREATE POLICY "Allow public all" ON public.categories FOR ALL USING (true) WITH 
                 <span class="text-emerald-400 font-semibold">${formatVND(inc)}</span>
               </div>
               <div class="flex justify-between text-slate-400">
+                <span>Tiết kiệm:</span>
+                <span class="text-amber-300 font-semibold">${formatVND(sav)}</span>
+              </div>
+              <div class="flex justify-between text-slate-400">
                 <span>Chi:</span>
                 <span class="text-rose-400 font-semibold">${formatVND(exp)}</span>
               </div>
               <div class="flex justify-between pt-1 border-t border-white/10 font-bold">
-                <span class="text-slate-300">Dư:</span>
-                <span class="${bal >= 0 ? 'text-amber-300' : 'text-rose-400'}">${formatVND(bal)}</span>
+                <span class="text-slate-300">Dư khả dụng:</span>
+                <span class="${remaining >= 0 ? 'text-indigo-300' : 'text-rose-400'}">${formatVND(remaining)}</span>
               </div>
             </div>
           </div>
@@ -1444,15 +2018,18 @@ CREATE POLICY "Allow public all" ON public.categories FOR ALL USING (true) WITH 
 
     // --- 10. CHART RENDERING ENGINE (CHART.JS) ---
     function renderCashflowChart(filteredTx) {
-      const ctx = document.getElementById('cashflowChart').getContext('2d');
+      const canvasEl = document.getElementById('cashflowChart');
+      if (!canvasEl) return;
+      const ctx = canvasEl.getContext('2d');
 
-      // Group by date or interval
       const dateMap = {};
       filteredTx.forEach(t => {
         if (!dateMap[t.date]) {
-          dateMap[t.date] = { income: 0, expense: 0 };
+          dateMap[t.date] = { income: 0, expense: 0, saving: 0 };
         }
-        if (t.type === 'income') {
+        if (t.type === 'saving' || t.category === 'Trích Quỹ Tiết Kiệm Tích Lũy') {
+          dateMap[t.date].saving += Number(t.amount);
+        } else if (t.type === 'income') {
           dateMap[t.date].income += Number(t.amount);
         } else {
           dateMap[t.date].expense += Number(t.amount);
@@ -1463,6 +2040,7 @@ CREATE POLICY "Allow public all" ON public.categories FOR ALL USING (true) WITH 
       const labels = sortedDates.map(d => formatDateDisplay(d));
       const incomeData = sortedDates.map(d => dateMap[d].income);
       const expenseData = sortedDates.map(d => dateMap[d].expense);
+      const savingData = sortedDates.map(d => dateMap[d].saving);
 
       if (cashflowChartInstance) {
         cashflowChartInstance.destroy();
@@ -1477,6 +2055,13 @@ CREATE POLICY "Allow public all" ON public.categories FOR ALL USING (true) WITH 
               label: 'Thu nhập',
               data: labels.length ? incomeData : [0],
               backgroundColor: 'rgba(16, 185, 129, 0.85)',
+              borderRadius: 6,
+              borderWidth: 0,
+            },
+            {
+              label: 'Tiết kiệm tích lũy',
+              data: labels.length ? savingData : [0],
+              backgroundColor: 'rgba(245, 158, 11, 0.9)',
               borderRadius: 6,
               borderWidth: 0,
             },
@@ -1526,9 +2111,11 @@ CREATE POLICY "Allow public all" ON public.categories FOR ALL USING (true) WITH 
     }
 
     function renderCategoryChart(filteredTx) {
-      const ctx = document.getElementById('categoryChart').getContext('2d');
+      const canvasEl = document.getElementById('categoryChart');
+      if (!canvasEl) return;
+      const ctx = canvasEl.getContext('2d');
 
-      const expenseTx = filteredTx.filter(t => t.type === 'expense');
+      const expenseTx = filteredTx.filter(t => t.type === 'expense' && t.category !== 'Trích Quỹ Tiết Kiệm Tích Lũy');
       const catMap = {};
 
       expenseTx.forEach(t => {
@@ -1585,7 +2172,9 @@ CREATE POLICY "Allow public all" ON public.categories FOR ALL USING (true) WITH 
     }
 
     function renderMemberComparisonChart() {
-      const ctx = document.getElementById('memberComparisonChart').getContext('2d');
+      const canvasEl = document.getElementById('memberComparisonChart');
+      if (!canvasEl) return;
+      const ctx = canvasEl.getContext('2d');
       const range = getPeriodRange();
 
       const memberIds = ['admin', 'ba', 'me', 'chi', 'vo'];
@@ -1597,7 +2186,18 @@ CREATE POLICY "Allow public all" ON public.categories FOR ALL USING (true) WITH 
             if (timeFilterMode !== 'all') {
               if (t.date < range.start || t.date > range.end) return false;
             }
-            return t.member === id && t.type === 'expense';
+            return t.member === id && t.type === 'expense' && t.category !== 'Trích Quỹ Tiết Kiệm Tích Lũy';
+          })
+          .reduce((sum, t) => sum + Number(t.amount), 0);
+      });
+
+      const savings = memberIds.map(id => {
+        return transactions
+          .filter(t => {
+            if (timeFilterMode !== 'all') {
+              if (t.date < range.start || t.date > range.end) return false;
+            }
+            return t.member === id && (t.type === 'saving' || t.category === 'Trích Quỹ Tiết Kiệm Tích Lũy');
           })
           .reduce((sum, t) => sum + Number(t.amount), 0);
       });
@@ -1623,15 +2223,21 @@ CREATE POLICY "Allow public all" ON public.categories FOR ALL USING (true) WITH 
           labels: memberNames,
           datasets: [
             {
-              label: 'Chi tiêu thành viên',
-              data: expenses,
-              backgroundColor: 'rgba(244, 63, 94, 0.85)',
+              label: 'Thu nhập',
+              data: incomes,
+              backgroundColor: 'rgba(16, 185, 129, 0.85)',
               borderRadius: 6
             },
             {
-              label: 'Thu nhập thành viên',
-              data: incomes,
-              backgroundColor: 'rgba(59, 130, 246, 0.85)',
+              label: 'Tiết kiệm',
+              data: savings,
+              backgroundColor: 'rgba(245, 158, 11, 0.9)',
+              borderRadius: 6
+            },
+            {
+              label: 'Chi tiêu',
+              data: expenses,
+              backgroundColor: 'rgba(244, 63, 94, 0.85)',
               borderRadius: 6
             }
           ]
@@ -1669,34 +2275,417 @@ CREATE POLICY "Allow public all" ON public.categories FOR ALL USING (true) WITH 
       });
     }
 
-    // --- 11. TRANSACTION HISTORY LIST ---
+    // --- 11. MULTI-DIMENSIONAL COMPARISON ANALYTICS (DoD, WoW, MoM, QoQ, YoY) ---
+    function setComparisonPeriod(period) {
+      comparisonPeriod = period;
+
+      const btnIds = {
+        dod: 'compBtnDoD',
+        wow: 'compBtnWoW',
+        mom: 'compBtnMoM',
+        qoq: 'compBtnQoQ',
+        yoy: 'compBtnYoY'
+      };
+
+      Object.keys(btnIds).forEach(k => {
+        const el = document.getElementById(btnIds[k]);
+        if (!el) return;
+        if (k === period) {
+          el.className = 'px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer bg-indigo-600 text-white shadow';
+        } else {
+          el.className = 'px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer text-slate-400 hover:text-white';
+        }
+      });
+
+      renderComparisonAnalytics();
+    }
+
+    function renderComparisonAnalytics() {
+      // Xác định khoảng thời gian của Kỳ hiện tại vs Kỳ đối chiếu
+      let curRange = { start: '', end: '', label: '' };
+      let prevRange = { start: '', end: '', label: '' };
+
+      if (comparisonPeriod === 'dod') {
+        // Ngày qua ngày: 31/08/2026 vs 30/08/2026
+        curRange = { start: '2026-08-31', end: '2026-08-31', label: 'Hôm nay (31/08/2026)' };
+        prevRange = { start: '2026-08-30', end: '2026-08-30', label: 'Hôm qua (30/08/2026)' };
+      } else if (comparisonPeriod === 'wow') {
+        // Tuần qua tuần: Tuần này (25/08 - 31/08) vs Tuần trước (18/08 - 24/08)
+        curRange = { start: '2026-08-25', end: '2026-08-31', label: 'Tuần này (25/08 - 31/08)' };
+        prevRange = { start: '2026-08-18', end: '2026-08-24', label: 'Tuần trước (18/08 - 24/08)' };
+      } else if (comparisonPeriod === 'mom') {
+        // Tháng qua tháng: Tháng 08/2026 vs Tháng 07/2026
+        curRange = { start: '2026-08-01', end: '2026-08-31', label: 'Tháng 08/2026 (Hiện tại)' };
+        prevRange = { start: '2026-07-01', end: '2026-07-31', label: 'Tháng 07/2026 (Tháng trước)' };
+      } else if (comparisonPeriod === 'qoq') {
+        // Quý qua quý: Quý 3/2026 (01/07 - 30/09) vs Quý 2/2026 (01/04 - 30/06)
+        curRange = { start: '2026-07-01', end: '2026-09-30', label: 'Quý 3/2026 (Hiện tại)' };
+        prevRange = { start: '2026-04-01', end: '2026-06-30', label: 'Quý 2/2026 (Quý trước)' };
+      } else if (comparisonPeriod === 'yoy') {
+        // Năm qua năm: Năm 2026 vs Năm 2025
+        curRange = { start: '2026-01-01', end: '2026-12-31', label: 'Năm 2026 (Hiện tại)' };
+        prevRange = { start: '2025-01-01', end: '2025-12-31', label: 'Năm 2025 (Năm trước)' };
+      }
+
+      const compLabelEl = document.getElementById('compPeriodLabel');
+      if (compLabelEl) {
+        compLabelEl.innerText = `So sánh đối chiếu: ${curRange.label} với ${prevRange.label}`;
+      }
+
+      // Lọc danh sách giao dịch cho 2 kỳ đối chiếu theo phân quyền người dùng
+      const isAdm = MEMBERS[activeMemberId].role === 'admin';
+      const userFilter = (t) => {
+        if (!isAdm) return t.member === activeMemberId;
+        if (adminFilterTarget !== 'all') return t.member === adminFilterTarget;
+        return true;
+      };
+
+      const curTx = transactions.filter(t => userFilter(t) && t.date >= curRange.start && t.date <= curRange.end);
+      const prevTx = transactions.filter(t => userFilter(t) && t.date >= prevRange.start && t.date <= prevRange.end);
+
+      // Tính 4 chỉ số cốt lõi: Thu nhập, Tiết kiệm, Chi tiêu, Số dư khả dụng
+      const calcMetrics = (txList) => {
+        let inc = 0, sav = 0, exp = 0;
+        txList.forEach(t => {
+          const amt = Number(t.amount) || 0;
+          if (t.type === 'saving' || t.category === 'Trích Quỹ Tiết Kiệm Tích Lũy') {
+            sav += amt;
+          } else if (t.type === 'income') {
+            inc += amt;
+          } else {
+            exp += amt;
+          }
+        });
+        const spendable = Math.max(0, inc - sav);
+        const balance = spendable - exp;
+        return { inc, sav, exp, spendable, balance };
+      };
+
+      const cur = calcMetrics(curTx);
+      const prev = calcMetrics(prevTx);
+
+      // Helper cập nhật badge & text so sánh
+      const updateCompCard = (curVal, prevVal, curElId, prevElId, badgeElId, deltaElId, isExpenseType = false) => {
+        if (document.getElementById(curElId)) document.getElementById(curElId).innerText = formatVND(curVal);
+        if (document.getElementById(prevElId)) document.getElementById(prevElId).innerText = formatVND(prevVal);
+
+        const delta = curVal - prevVal;
+        let pct = 0;
+        if (prevVal > 0) {
+          pct = Math.round((Math.abs(delta) / prevVal) * 100);
+        } else if (curVal > 0) {
+          pct = 100;
+        }
+
+        const badgeEl = document.getElementById(badgeElId);
+        const deltaEl = document.getElementById(deltaElId);
+
+        if (isExpenseType) {
+          // Đối với Chi tiêu: chi ít hơn (delta < 0) là TÍCH CỰC (màu xanh lá)
+          if (delta < 0) {
+            if (badgeEl) {
+              badgeEl.className = 'text-[11px] font-black px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+              badgeEl.innerHTML = `<i class="fa-solid fa-arrow-down mr-0.5"></i>-${pct}%`;
+            }
+            if (deltaEl) {
+              deltaEl.className = 'text-[11px] text-emerald-400 font-semibold';
+              deltaEl.innerText = `Tiết kiệm hơn ${formatVND(Math.abs(delta))}`;
+            }
+          } else if (delta > 0) {
+            if (badgeEl) {
+              badgeEl.className = 'text-[11px] font-black px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30';
+              badgeEl.innerHTML = `<i class="fa-solid fa-arrow-up mr-0.5"></i>+${pct}%`;
+            }
+            if (deltaEl) {
+              deltaEl.className = 'text-[11px] text-rose-400 font-semibold';
+              deltaEl.innerText = `Tăng chi ${formatVND(delta)}`;
+            }
+          } else {
+            if (badgeEl) {
+              badgeEl.className = 'text-[11px] font-black px-2 py-0.5 rounded-full bg-white/10 text-slate-300';
+              badgeEl.innerText = '0%';
+            }
+            if (deltaEl) {
+              deltaEl.className = 'text-[11px] text-slate-400';
+              deltaEl.innerText = 'Bằng kỳ trước';
+            }
+          }
+        } else {
+          // Đối với Thu nhập, Tiết kiệm, Dư khả dụng: Tăng là TỐT
+          if (delta > 0) {
+            if (badgeEl) {
+              badgeEl.className = 'text-[11px] font-black px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+              badgeEl.innerHTML = `<i class="fa-solid fa-arrow-up mr-0.5"></i>+${pct}%`;
+            }
+            if (deltaEl) {
+              deltaEl.className = 'text-[11px] text-emerald-400 font-semibold';
+              deltaEl.innerText = `Tăng ${formatVND(delta)}`;
+            }
+          } else if (delta < 0) {
+            if (badgeEl) {
+              badgeEl.className = 'text-[11px] font-black px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30';
+              badgeEl.innerHTML = `<i class="fa-solid fa-arrow-down mr-0.5"></i>-${pct}%`;
+            }
+            if (deltaEl) {
+              deltaEl.className = 'text-[11px] text-rose-400 font-semibold';
+              deltaEl.innerText = `Giảm ${formatVND(Math.abs(delta))}`;
+            }
+          } else {
+            if (badgeEl) {
+              badgeEl.className = 'text-[11px] font-black px-2 py-0.5 rounded-full bg-white/10 text-slate-300';
+              badgeEl.innerText = '0%';
+            }
+            if (deltaEl) {
+              deltaEl.className = 'text-[11px] text-slate-400';
+              deltaEl.innerText = 'Bằng kỳ trước';
+            }
+          }
+        }
+      };
+
+      // Cập nhật 4 thẻ
+      updateCompCard(cur.inc, prev.inc, 'compIncomeCurrent', 'compIncomePrevious', 'compIncomeBadge', 'compIncomeDelta', false);
+      updateCompCard(cur.exp, prev.exp, 'compExpenseCurrent', 'compExpensePrevious', 'compExpenseBadge', 'compExpenseDelta', true);
+      updateCompCard(cur.sav, prev.sav, 'compSavingCurrent', 'compSavingPrevious', 'compSavingBadge', 'compSavingDelta', false);
+      updateCompCard(cur.balance, prev.balance, 'compBalanceCurrent', 'compBalancePrevious', 'compBalanceBadge', 'compBalanceDelta', false);
+
+      // Render Biểu đồ đối chiếu trực quan
+      const chartCanvas = document.getElementById('comparisonChart');
+      if (chartCanvas) {
+        const ctx = chartCanvas.getContext('2d');
+        if (comparisonChartInstance) {
+          comparisonChartInstance.destroy();
+        }
+
+        comparisonChartInstance = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: ['Thu nhập', 'Chi tiêu', 'Tiết kiệm', 'Dư khả dụng'],
+            datasets: [
+              {
+                label: `Kỳ này (${curRange.label.split(' ')[0]})`,
+                data: [cur.inc, cur.exp, cur.sav, cur.balance],
+                backgroundColor: 'rgba(99, 102, 241, 0.9)',
+                borderRadius: 6,
+                borderWidth: 0
+              },
+              {
+                label: `Kỳ đối chiếu (${prevRange.label.split(' ')[0]})`,
+                data: [prev.inc, prev.exp, prev.sav, prev.balance],
+                backgroundColor: 'rgba(148, 163, 184, 0.45)',
+                borderRadius: 6,
+                borderWidth: 0
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'top',
+                labels: { color: '#cbd5e1', font: { family: 'Plus Jakarta Sans', size: 11, weight: 'bold' } }
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(c) {
+                    return c.dataset.label + ': ' + formatVND(c.raw);
+                  }
+                }
+              }
+            },
+            scales: {
+              x: {
+                ticks: { color: '#cbd5e1', font: { weight: 'bold' } },
+                grid: { display: false }
+              },
+              y: {
+                ticks: {
+                  color: '#94a3b8',
+                  callback: function(v) { return (v / 1000000) + 'M'; }
+                },
+                grid: { color: 'rgba(255, 255, 255, 0.08)' }
+              }
+            }
+          }
+        });
+      }
+    }
+
+    // --- 12. CATEGORY FILTER CHIPS & SORTING LOGIC ---
+    function renderCategoryFilterChips(filteredTx) {
+      const container = document.getElementById('categoryFilterChipsContainer');
+      if (!container) return;
+
+      const counts = {};
+      const amounts = {};
+      let totalCount = 0;
+
+      filteredTx.forEach(t => {
+        counts[t.category] = (counts[t.category] || 0) + 1;
+        amounts[t.category] = (amounts[t.category] || 0) + Number(t.amount);
+        totalCount++;
+      });
+
+      const isAllActive = selectedCategoryFilter === 'all';
+      let html = `
+        <button onclick="clearCategoryFilter()" class="px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition flex items-center space-x-1.5 cursor-pointer border ${
+          isAllActive ? 'bg-indigo-600 text-white border-indigo-400 shadow-md shadow-indigo-600/30' : 'bg-slate-900/80 text-slate-300 border-white/10 hover:border-white/20'
+        }">
+          <span>🌟 Tất cả</span>
+          <span class="text-[10px] px-1.5 py-0.2 rounded-full ${isAllActive ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400'}">${totalCount}</span>
+        </button>
+      `;
+
+      const activeCats = categories.filter(c => counts[c.name] && counts[c.name] > 0);
+      
+      Object.keys(counts).forEach(catName => {
+        if (!activeCats.some(c => c.name.toLowerCase() === catName.toLowerCase())) {
+          activeCats.push({
+            id: 'dyn-' + catName,
+            name: catName,
+            icon: '🏷️',
+            isCustom: true
+          });
+        }
+      });
+
+      html += activeCats.map(cat => {
+        const isSelected = selectedCategoryFilter.toLowerCase() === cat.name.toLowerCase();
+        const cnt = counts[cat.name] || 0;
+        return `
+          <button onclick="selectCategoryFilter('${cat.name}')" class="px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition flex items-center space-x-1.5 cursor-pointer border ${
+            isSelected ? 'bg-indigo-600 text-white border-indigo-400 shadow-md shadow-indigo-600/30' : 'bg-slate-900/80 text-slate-300 border-white/10 hover:border-white/20'
+          }">
+            <span>${cat.icon || '🏷️'}</span>
+            <span>${cat.name}</span>
+            <span class="text-[10px] px-1.5 py-0.2 rounded-full ${isSelected ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400'}">${cnt}</span>
+          </button>
+        `;
+      }).join('');
+
+      container.innerHTML = html;
+    }
+
+    function selectCategoryFilter(catName) {
+      selectedCategoryFilter = catName;
+
+      const banner = document.getElementById('selectedCategoryBanner');
+      const clearBtn = document.getElementById('btnClearCatFilter');
+      const filtered = getFilteredTransactions();
+
+      if (catName === 'all') {
+        clearCategoryFilter();
+        return;
+      }
+
+      if (clearBtn) clearBtn.classList.remove('hidden');
+
+      if (banner) {
+        banner.classList.remove('hidden');
+
+        const catObj = categories.find(c => c.name.toLowerCase() === catName.toLowerCase());
+        const icon = catObj ? catObj.icon : '🏷️';
+        if (document.getElementById('catBannerIcon')) document.getElementById('catBannerIcon').innerText = icon;
+        if (document.getElementById('catBannerName')) document.getElementById('catBannerName').innerText = catName;
+
+        const catTx = filtered.filter(t => t.category.toLowerCase() === catName.toLowerCase());
+        const totalAmount = catTx.reduce((sum, t) => sum + Number(t.amount), 0);
+        
+        const totalExp = filtered.filter(t => t.type === 'expense').reduce((sum, t) => sum + Number(t.amount), 0);
+        const percent = totalExp > 0 ? Math.round((totalAmount / totalExp) * 100) : 0;
+
+        if (document.getElementById('catBannerCountBadge')) {
+          document.getElementById('catBannerCountBadge').innerText = `${catTx.length} giao dịch`;
+        }
+        if (document.getElementById('catBannerTotalAmount')) {
+          document.getElementById('catBannerTotalAmount').innerText = formatVND(totalAmount);
+        }
+        if (document.getElementById('catBannerSharePercent')) {
+          document.getElementById('catBannerSharePercent').innerText = `${percent}% tổng chi tiêu`;
+        }
+      }
+
+      renderCategoryFilterChips(filtered);
+      renderTransactionList();
+    }
+
+    function clearCategoryFilter() {
+      selectedCategoryFilter = 'all';
+      const banner = document.getElementById('selectedCategoryBanner');
+      const clearBtn = document.getElementById('btnClearCatFilter');
+      if (banner) banner.classList.add('hidden');
+      if (clearBtn) clearBtn.classList.add('hidden');
+
+      const filtered = getFilteredTransactions();
+      renderCategoryFilterChips(filtered);
+      renderTransactionList();
+    }
+
+    function onSortChange(sortVal) {
+      selectedSortOrder = sortVal;
+      renderTransactionList();
+    }
+
+    // --- 13. TRANSACTION HISTORY LIST (VỚI BỘ LỌC DANH MỤC & SẮP XẾP) ---
     function renderTransactionList() {
       const container = document.getElementById('transactionsListContainer');
-      const search = document.getElementById('txSearchInput').value.toLowerCase().trim();
-      const typeFilter = document.getElementById('txTypeFilter').value;
+      if (!container) return;
+
+      const searchInput = document.getElementById('txSearchInput');
+      const search = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+      const typeFilterEl = document.getElementById('txTypeFilter');
+      const typeFilter = typeFilterEl ? typeFilterEl.value : 'all';
 
       let list = getFilteredTransactions();
 
       if (typeFilter !== 'all') {
-        list = list.filter(t => t.type === typeFilter);
+        if (typeFilter === 'expense') {
+          list = list.filter(t => t.type === 'expense' && t.category !== 'Trích Quỹ Tiết Kiệm Tích Lũy');
+        } else if (typeFilter === 'income') {
+          list = list.filter(t => t.type === 'income');
+        } else if (typeFilter === 'saving') {
+          list = list.filter(t => t.type === 'saving' || t.category === 'Trích Quỹ Tiết Kiệm Tích Lũy');
+        }
+      }
+
+      if (selectedCategoryFilter !== 'all') {
+        list = list.filter(t => t.category.toLowerCase() === selectedCategoryFilter.toLowerCase());
       }
 
       if (search) {
         list = list.filter(t => 
           (t.note && t.note.toLowerCase().includes(search)) ||
           (t.category && t.category.toLowerCase().includes(search)) ||
-          MEMBERS[t.member].name.toLowerCase().includes(search)
+          (MEMBERS[t.member] && MEMBERS[t.member].name.toLowerCase().includes(search))
         );
+      }
+
+      if (selectedSortOrder === 'newest') {
+        list.sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
+      } else if (selectedSortOrder === 'oldest') {
+        list.sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
+      } else if (selectedSortOrder === 'highest') {
+        list.sort((a, b) => Number(b.amount) - Number(a.amount));
+      } else if (selectedSortOrder === 'lowest') {
+        list.sort((a, b) => Number(a.amount) - Number(b.amount));
       }
 
       if (list.length === 0) {
         container.innerHTML = `
           <div class="text-center py-12 text-slate-400">
             <i class="fa-regular fa-folder-open text-4xl mb-3 text-slate-600 block"></i>
-            <p class="text-sm font-medium">Chưa có giao dịch nào trong khoảng thời gian này.</p>
-            <button onclick="openAddTransactionModal()" class="mt-3 text-xs text-indigo-400 hover:underline font-semibold cursor-pointer">
-              + Thêm giao dịch ngay
-            </button>
+            <p class="text-sm font-medium">Không tìm thấy giao dịch nào phù hợp với bộ lọc hiện tại.</p>
+            ${selectedCategoryFilter !== 'all' ? `
+              <button onclick="clearCategoryFilter()" class="mt-3 text-xs text-indigo-400 hover:underline font-semibold cursor-pointer">
+                ✕ Bỏ lọc danh mục "${selectedCategoryFilter}"
+              </button>
+            ` : `
+              <button onclick="openAddTransactionModal()" class="mt-3 text-xs text-indigo-400 hover:underline font-semibold cursor-pointer">
+                + Thêm giao dịch ngay
+              </button>
+            `}
           </div>
         `;
         return;
@@ -1704,21 +2693,26 @@ CREATE POLICY "Allow public all" ON public.categories FOR ALL USING (true) WITH 
 
       container.innerHTML = list.map(t => {
         const member = MEMBERS[t.member] || MEMBERS.admin;
-        const isExp = t.type === 'expense';
+        const isSaving = t.type === 'saving' || t.category === 'Trích Quỹ Tiết Kiệm Tích Lũy';
+        const isExp = t.type === 'expense' && !isSaving;
         const catObj = categories.find(c => c.name.toLowerCase() === t.category.toLowerCase());
-        const icon = catObj ? catObj.icon : (isExp ? '🔴' : '🟢');
-        const isCustom = catObj ? catObj.isCustom : true;
+        const icon = isSaving ? '💎' : (catObj ? catObj.icon : (isExp ? '🔴' : '🟢'));
+        const isCustom = catObj ? catObj.isCustom : false;
 
         return `
-          <div class="glass-card-interactive p-3.5 sm:p-4 rounded-xl flex items-center justify-between gap-3 border border-white/10 group">
+          <div class="glass-card-interactive p-3.5 sm:p-4 rounded-xl flex items-center justify-between gap-3 border border-white/10 group ${
+            isSaving ? 'hover:border-amber-400/50' : (isExp ? 'hover:border-rose-400/50' : 'hover:border-emerald-400/50')
+          }">
             <div class="flex items-center space-x-3 sm:space-x-4 min-w-0">
-              <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl ${isExp ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30' : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'} flex items-center justify-center text-lg sm:text-xl shrink-0">
+              <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl ${
+                isSaving ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : (isExp ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30' : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30')
+              } flex items-center justify-center text-lg sm:text-xl shrink-0">
                 ${icon}
               </div>
               <div class="min-w-0">
                 <div class="flex items-center space-x-2">
                   <span class="font-bold text-sm sm:text-base text-white truncate">${t.category}</span>
-                  ${isCustom ? '<span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-semibold border border-amber-500/30">Tùy biến</span>' : ''}
+                  ${isSaving ? '<span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-black border border-amber-500/30 uppercase">Quỹ Tích Lũy</span>' : (isCustom ? '<span class="text-[9px] px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 font-semibold border border-purple-500/30">Tùy biến</span>' : '')}
                 </div>
                 <div class="flex items-center space-x-2 text-xs text-slate-400 mt-0.5">
                   <span class="flex items-center space-x-1">
@@ -1735,10 +2729,12 @@ CREATE POLICY "Allow public all" ON public.categories FOR ALL USING (true) WITH 
 
             <div class="flex items-center space-x-3 shrink-0">
               <div class="text-right">
-                <div class="font-black text-sm sm:text-base ${isExp ? 'text-rose-400' : 'text-emerald-400'}">
-                  ${isExp ? '-' : '+'}${formatVND(t.amount)}
+                <div class="font-black text-sm sm:text-base ${isSaving ? 'text-amber-300' : (isExp ? 'text-rose-400' : 'text-emerald-400')}">
+                  ${isSaving ? '💎 ' : (isExp ? '-' : '+')}${formatVND(t.amount)}
                 </div>
-                <div class="text-[10px] text-slate-400 uppercase font-semibold">${isExp ? 'Chi tiêu' : 'Thu nhập'}</div>
+                <div class="text-[10px] uppercase font-bold ${isSaving ? 'text-amber-400/90' : (isExp ? 'text-rose-400/80' : 'text-emerald-400/80')}">
+                  ${isSaving ? 'Tiết kiệm' : (isExp ? 'Chi tiêu' : 'Thu nhập')}
+                </div>
               </div>
               <button onclick="handleDeleteTransaction('${t.id}')" class="opacity-40 group-hover:opacity-100 hover:text-rose-400 text-slate-400 p-2 transition cursor-pointer" title="Xóa giao dịch">
                 <i class="fa-regular fa-trash-can text-sm"></i>
@@ -1754,14 +2750,22 @@ CREATE POLICY "Allow public all" ON public.categories FOR ALL USING (true) WITH 
       currentFormType = type;
       const btnExp = document.getElementById('btnFormExpense');
       const btnInc = document.getElementById('btnFormIncome');
+      const btnSav = document.getElementById('btnFormSaving');
 
       if (type === 'expense') {
-        btnExp.className = 'py-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-2 bg-rose-600 text-white shadow';
-        btnInc.className = 'py-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-2 text-slate-400 hover:text-white';
-      } else {
-        btnInc.className = 'py-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-2 bg-emerald-600 text-white shadow';
-        btnExp.className = 'py-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-2 text-slate-400 hover:text-white';
+        if (btnExp) btnExp.className = 'py-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-2 bg-rose-600 text-white shadow';
+        if (btnInc) btnInc.className = 'py-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-2 text-slate-400 hover:text-white';
+        if (btnSav) btnSav.className = 'py-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-2 text-slate-400 hover:text-white';
+      } else if (type === 'income') {
+        if (btnInc) btnInc.className = 'py-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-2 bg-emerald-600 text-white shadow';
+        if (btnExp) btnExp.className = 'py-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-2 text-slate-400 hover:text-white';
+        if (btnSav) btnSav.className = 'py-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-2 text-slate-400 hover:text-white';
+      } else if (type === 'saving') {
+        if (btnSav) btnSav.className = 'py-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-2 bg-amber-600 text-white shadow';
+        if (btnExp) btnExp.className = 'py-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-2 text-slate-400 hover:text-white';
+        if (btnInc) btnInc.className = 'py-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-2 text-slate-400 hover:text-white';
       }
+      selectedFormCategory = '';
       renderCategoryChips();
     }
 
@@ -1971,7 +2975,7 @@ CREATE POLICY "Allow public all" ON public.categories FOR ALL USING (true) WITH 
       refreshDashboard();
     }
 
-    // --- 14. MODAL TOGGLES ---
+    // --- 14. MODAL TOGGLES & SAVINGS HANDLERS ---
     function showMemberLoginModal() { document.getElementById('memberLoginModal').classList.remove('hidden'); }
     function closeMemberLoginModal() { document.getElementById('memberLoginModal').classList.add('hidden'); }
 
@@ -1981,6 +2985,108 @@ CREATE POLICY "Allow public all" ON public.categories FOR ALL USING (true) WITH 
       renderCategoryChips();
     }
     function closeAddTransactionModal() { document.getElementById('addTransactionModal').classList.add('hidden'); }
+
+    function openAddSavingModal() {
+      const modal = document.getElementById('addSavingModal');
+      if (!modal) return;
+      const memberSelect = document.getElementById('savingMemberSelect') || document.getElementById('savingVaultMember');
+      if (memberSelect) memberSelect.value = activeMemberId;
+      const dateInput = document.getElementById('savingDate') || document.getElementById('savingVaultDate');
+      if (dateInput && !dateInput.value) dateInput.value = '2026-08-31';
+      modal.classList.remove('hidden');
+    }
+    function closeAddSavingModal() {
+      const modal = document.getElementById('addSavingModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function setSavingAmountPreset(val) {
+      const el = document.getElementById('savingAmount') || document.getElementById('savingVaultAmount');
+      if (el) el.value = val;
+    }
+
+    async function handleSaveVaultDeposit(e) {
+      e.preventDefault();
+      const amountEl = document.getElementById('savingAmount') || document.getElementById('savingVaultAmount');
+      const memberEl = document.getElementById('savingMemberSelect') || document.getElementById('savingVaultMember');
+      const dateEl = document.getElementById('savingDate') || document.getElementById('savingVaultDate');
+      const noteEl = document.getElementById('savingNote') || document.getElementById('savingVaultNote');
+
+      const amount = Number(amountEl ? amountEl.value : 0);
+      const member = memberEl ? memberEl.value : activeMemberId;
+      const date = dateEl ? dateEl.value : '2026-08-31';
+      const note = (noteEl && noteEl.value.trim()) ? noteEl.value.trim() : 'Trích gửi Quỹ Tiết Kiệm Tích Lũy';
+
+      if (!amount || amount <= 0) {
+        alert('Vui lòng nhập số tiền tiết kiệm hợp lệ!');
+        return;
+      }
+
+      const newTx = {
+        id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'tx-sav-' + Date.now(),
+        member: member,
+        type: 'saving',
+        amount: amount,
+        category: 'Trích Quỹ Tiết Kiệm Tích Lũy',
+        note: note,
+        date: date
+      };
+
+      if (supabaseClient) {
+        try {
+          await supabaseClient.from('transactions').insert([newTx]);
+        } catch (err) {
+          console.warn('Lỗi lưu gửi tiết kiệm lên Supabase:', err);
+        }
+      }
+
+      transactions.unshift(newTx);
+      localStorage.setItem('family_transactions_cache', JSON.stringify(transactions));
+
+      if (amountEl) amountEl.value = '';
+      if (noteEl) noteEl.value = '';
+      closeAddSavingModal();
+      refreshDashboard();
+
+      if (window.confetti) {
+        window.confetti({ particleCount: 70, spread: 80, origin: { y: 0.5 } });
+      }
+    }
+
+    function openSavingsTargetModal() {
+      const modal = document.getElementById('savingsTargetModal');
+      if (!modal) return;
+      const baseEl = document.getElementById('inputCumulativeSavingsBase') || document.getElementById('inputCumulativeBase');
+      const goalEl = document.getElementById('inputSavingsTargetGoal') || document.getElementById('inputSavingsGoal');
+      if (baseEl) baseEl.value = cumulativeSavingsBase;
+      if (goalEl) goalEl.value = savingsTargetGoal;
+      modal.classList.remove('hidden');
+    }
+    function closeSavingsTargetModal() {
+      const modal = document.getElementById('savingsTargetModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function handleSaveSavingsConfig(e) {
+      e.preventDefault();
+      const baseEl = document.getElementById('inputCumulativeSavingsBase') || document.getElementById('inputCumulativeBase');
+      const goalEl = document.getElementById('inputSavingsTargetGoal') || document.getElementById('inputSavingsGoal');
+      const baseVal = Number(baseEl ? baseEl.value : 0) || 0;
+      const goalVal = Number(goalEl ? goalEl.value : 200000000) || 200000000;
+
+      cumulativeSavingsBase = baseVal;
+      savingsTargetGoal = goalVal;
+
+      localStorage.setItem('family_savings_base', baseVal);
+      localStorage.setItem('family_savings_goal', goalVal);
+
+      closeSavingsTargetModal();
+      refreshDashboard();
+
+      if (window.confetti) {
+        window.confetti({ particleCount: 40, spread: 60, origin: { y: 0.6 } });
+      }
+    }
 
     function openSupabaseModal() {
       let url = DEFAULT_SUPABASE_URL;
